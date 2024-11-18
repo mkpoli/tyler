@@ -320,7 +320,7 @@ export default {
 				) {
 					modifiedFiles[templateFileRelativeToSrcDir] = content.replace(
 						`import "${libraryEntrypointRelativeToTemplateFile}"`,
-						`import "@preview/${typstToml.package.name}:${typstToml.package.version}"`,
+						`import "@preview/${typstToml.package.name}:${bumpedVersion}"`,
 					);
 				}
 			}
