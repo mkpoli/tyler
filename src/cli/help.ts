@@ -1,8 +1,8 @@
-import chalk from "chalk";
-import clu from "command-line-usage";
 import commands from "@/cli/commands";
 import type { Command } from "@/cli/commands/types";
-import { version } from "@/utils/version"
+import { version } from "@/utils/version";
+import chalk from "chalk";
+import clu from "command-line-usage";
 
 const LOGO = `
         .               oooo                     
