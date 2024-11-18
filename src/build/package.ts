@@ -1,6 +1,6 @@
+import fs from "node:fs/promises";
 import chalk from "chalk";
 import * as toml from "smol-toml";
-import fs from "node:fs/promises";
 
 export type TypstToml = {
 	package: {
