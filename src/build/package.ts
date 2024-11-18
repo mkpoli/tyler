@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import * as toml from "smol-toml";
+import fs from "node:fs/promises";
 
 export type TypstToml = {
 	package: {
@@ -42,7 +43,8 @@ export type TypstIndexPackageMetadata = Partial<{
 
 export async function readTypstToml(path: string): Promise<TypstToml> {
 	try {
-		return toml.parse(await Bun.file(path).text()) as TypstToml;
+		const text = await fs.readFile(path, "utf-8");
+		return toml.parse(text) as TypstToml;
 	} catch (error) {
 		throw new Error("[Tyler] `typst.toml` is invalid");
 	}
