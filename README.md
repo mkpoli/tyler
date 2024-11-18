@@ -50,6 +50,24 @@ Build the package in `/home/user/typst/some-package` and output to `/home/user/t
 tyler build /home/user/typst/some-package --outdir=/home/user/typst/packages/packages/preview/some-package/0.1.0
 ```
 
+#### Publish
+
+You need to have `git` and it is recommended to have `gh` (GitHub CLI) installed to publish the package.
+
+```
+tyler build -p
+```
+
+If you are experiencing the following error, you can try to downgrade HTTP/2 to HTTP/1.1 by `git config --global http.version HTTP/1.1` (to reverse it, do `git config --global http.version --unset`):
+
+```
+error: RPC failed; curl 92 HTTP/2 stream 0 was not closed cleanly: CANCEL (err 8)
+error: 1143 bytes of body are still expected
+fetch-pack: unexpected disconnect while reading sideband packet
+fatal: early EOF
+fatal: fetch-pack: invalid index-pack output
+```
+
 ### Configuration
 
 You can pass options to `tyler` commands directly or via `[tool.tyler]` section in your `typetst.toml` file. The CLI options will override the config options, and the config options are limited to the following (with the default value noted):
