@@ -1,0 +1,15 @@
+{
+	"$schema": "https://biome.sh/schema.json",
+	"files": {
+		"ignore": ["dist", "node_modules"]
+	},
+	"formatter": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true
+	},
+	"organizeImports": {
+		"enabled": true
+	}
+}

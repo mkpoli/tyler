@@ -1,0 +1,49 @@
+{
+	"name": "tyler",
+	"version": "0.0.0",
+	"author": {
+		"name": "mkpoli",
+		"url": "https://mkpo.li/",
+		"email": "mkpoli@mkpo.li"
+	},
+	"main": "./dist/index.js",
+	"module": "index.ts",
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/bun": "latest",
+		"@types/command-line-args": "^5.2.3",
+		"@types/command-line-usage": "^5.0.4",
+		"@types/semver": "^7.5.8",
+		"chalk": "^5.3.0",
+		"inquirer": "^12.0.1",
+		"rimraf": "^6.0.1",
+		"semver": "^7.6.3",
+		"smol-toml": "^1.3.0",
+		"toml": "^3.0.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"bin": {
+		"tyler": "./bin/tyler.js"
+	},
+	"description": "Typst package compiler for the ease of packaging and publishing Typst templates.",
+	"files": ["dist", "bin"],
+	"keywords": ["typst", "package", "compiler"],
+	"license": "MIT",
+	"scripts": {
+		"check": "biome check",
+		"check:fix": "biome check --write",
+		"build": "rimraf ./dist && bun build ./src/* --outdir ./dist --target node --minify",
+		"start": "bun run build && bun ./bin/tyler.js"
+	},
+	"type": "module",
+	"dependencies": {
+		"command-line-args": "^6.0.1",
+		"command-line-usage": "^7.0.3",
+		"minimatch": "^10.0.1"
+	}
+}
