@@ -1,4 +1,3 @@
-import { exec } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -403,7 +402,10 @@ export default {
 			const builtPackageVersion = typstTomlOutWithoutToolTylerWithBumpedVersion.package.version;
 
 			// - Make a temporary directory
-			const tempDirPath = path.join(os.tmpdir(), `tyler-publish-${typstToml.package.name}-${typstToml.package.version}`);
+			const tempDirPath = path.join(
+				os.tmpdir(),
+				`tyler-publish`,
+			);
 			if (options.dryRun) {
 				console.info(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would make a temporary directory in ${chalk.gray(tempDirPath)}`,
@@ -419,27 +421,60 @@ export default {
 			const gitRepoUrl = "https://github.com/typst/packages.git";
 			const gitRepoDir = path.join(tempDirPath, "packages");
 
-
-			if (options.dryRun) {
-				console.info(
-					`[Tyler] ${chalk.gray("(dry-run)")} Would clone ${chalk.gray(gitRepoUrl)} into ${chalk.gray(tempDirPath)}`,
-				);
-			} else {
-				exec(cloneCommand, (error, stdout, stderr) => {
-					if (error) {
-						console.error(
-							`[Tyler] ${chalk.red("Error cloning repository:")} ${error.message}`,
-						);
-						return;
-					}
-					if (stderr) {
-						console.error(`[Tyler] ${chalk.red("Error:")} ${stderr}`);
-						return;
-					}
+			const isGitRepo = await fileExists(path.join(gitRepoDir, ".git"));
+			if (!isGitRepo) {
+				// - Remove the directory
+				if (options.dryRun) {
 					console.info(
-						`[Tyler] Cloned ${chalk.gray(gitRepoUrl)} into ${chalk.gray(tempDirPath)}`,
+						`[Tyler] ${chalk.gray("(dry-run)")} Would remove ${chalk.gray(gitRepoDir)}`,
 					);
-				});
+				} else {
+					await fs.rm(gitRepoDir, { recursive: true });
+					console.info(
+						`[Tyler] Removed ${chalk.gray(gitRepoDir)}`,
+					);
+				}
+			}
+
+			if (!(await fileExists(gitRepoDir))) {
+				const cloneCommand = `git clone ${gitRepoUrl} ${gitRepoDir} --depth 1`;
+
+				if (options.dryRun) {
+					console.info(
+						`[Tyler] ${chalk.gray("(dry-run)")} Would clone ${chalk.gray(gitRepoUrl)} into ${chalk.gray(gitRepoDir)}`,
+					);
+				} else {
+					try {
+						await execAndRedirect(cloneCommand);
+						console.info(
+							`[Tyler] Cloned ${chalk.gray(gitRepoUrl)} into ${chalk.gray(gitRepoDir)}`,
+						);
+					} catch (error) {
+						if (error instanceof Error) {
+							console.info(
+								`[Tyler] ${chalk.red("Error cloning repository:")} ${error.message}`,
+							);
+						}
+					}
+				}
+			} else {
+				// - Clean up git working tree
+				if (options.dryRun) {
+					console.info(
+						`[Tyler] ${chalk.gray("(dry-run)")} Would clean up git working tree in ${chalk.gray(gitRepoDir)}`,
+					);
+				} else {
+					const cleanCommand = `git -C ${gitRepoDir} reset --hard HEAD`;
+					await execAndRedirect(cleanCommand);
+				}
+
+				// - Fetch the latest changes from origin
+				const fetchCommand = `git -C ${gitRepoDir} fetch origin`;
+				await execAndRedirect(fetchCommand);
+
+				// - Create a new branch from origin/main
+				const createBranchCommand = `git -C ${gitRepoDir} checkout -b ${builtPackageName}-${builtPackageVersion} origin/main`;
+				await execAndRedirect(createBranchCommand);
 			}
 
 			// - Copy the built package to the cloned repository
