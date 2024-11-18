@@ -1,4 +1,6 @@
+import { exec } from "node:child_process";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 import chalk from "chalk";
@@ -79,6 +81,14 @@ export default {
 			defaultValue: false,
 			alias: "i",
 		},
+		{
+			name: "publish",
+			description:
+				"Publish the built package to the Typst preview package index",
+			type: Boolean,
+			defaultValue: false,
+			alias: "p",
+		},
 	],
 	usage: "<entrypoint> [options]",
 	async run(options): Promise<void> {
@@ -115,7 +125,7 @@ export default {
 			);
 		}
 
-		let updatedOptions = updateOptionFromConfig(
+		const updatedOptions = updateOptionFromConfig(
 			options,
 			typstToml.tool?.tyler ?? ({} as Partial<Config>),
 		);
@@ -360,10 +370,19 @@ export default {
 		// #region Install the built package to Typst local package group
 		if (options.install) {
 			// copy all files in to
-			const localPackagesDirectory = path.resolve(await getDataDirectory(), "typst", "packages", "local");
-			const currentPackageDirectory = path.resolve(localPackagesDirectory, typstTomlOutWithoutToolTylerWithBumpedVersion.package.name, typstTomlOutWithoutToolTylerWithBumpedVersion.package.version);
+			const localPackagesDirectory = path.resolve(
+				await getDataDirectory(),
+				"typst",
+				"packages",
+				"local",
+			);
+			const currentPackageDirectory = path.resolve(
+				localPackagesDirectory,
+				typstTomlOutWithoutToolTylerWithBumpedVersion.package.name,
+				typstTomlOutWithoutToolTylerWithBumpedVersion.package.version,
+			);
 
-			if (options.dryRun) {	
+			if (options.dryRun) {
 				console.info(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would install to ${chalk.yellow(path.relative(workingDirectory, currentPackageDirectory))}`,
 				);
@@ -376,6 +395,130 @@ export default {
 			}
 		}
 		// #endregion
+
+		// #region Publish the built package to the Typst preview package index
+		if (options.publish) {
+			// - Make a temporary directory
+			const tempDirPath = path.join(os.tmpdir(), `tyler-publish-${typstToml.package.name}-${typstToml.package.version}`);
+			if (options.dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would make a temporary directory in ${chalk.gray(tempDirPath)}`,
+				);
+			} else {
+				await fs.mkdir(tempDirPath, { recursive: true });
+				console.info(
+					`[Tyler] Made a temporary directory in ${chalk.gray(tempDirPath)}`,
+				);
+			}
+
+			// - Clone github:typst/packages
+			const gitRepoUrl = "https://github.com/typst/packages.git";
+			const cloneCommand = `git clone ${gitRepoUrl} ${tempDirPath}`;
+
+			if (options.dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would clone ${chalk.gray(gitRepoUrl)} into ${chalk.gray(tempDirPath)}`,
+				);
+			} else {
+				exec(cloneCommand, (error, stdout, stderr) => {
+					if (error) {
+						console.error(
+							`[Tyler] ${chalk.red("Error cloning repository:")} ${error.message}`,
+						);
+						return;
+					}
+					if (stderr) {
+						console.error(`[Tyler] ${chalk.red("Error:")} ${stderr}`);
+						return;
+					}
+					console.info(
+						`[Tyler] Cloned ${chalk.gray(gitRepoUrl)} into ${chalk.gray(tempDirPath)}`,
+					);
+				});
+			}
+
+			// - Copy the built package to the cloned repository
+			const packageDir = path.join(
+				tempDirPath,
+				"packages",
+				"preview",
+				typstToml.package.name,
+				typstToml.package.version,
+			);
+			if (options.dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would copy files from ${chalk.gray(outputDir)} to ${chalk.gray(packageDir)}`,
+				);
+			} else {
+				await fs.mkdir(packageDir, { recursive: true });
+				await fs.cp(outputDir, packageDir, { recursive: true });
+				console.info(
+					`[Tyler] Copied files from ${chalk.gray(outputDir)} to ${chalk.gray(packageDir)}`,
+				);
+			}
+
+			// - Stage, commit and push the built package to the cloned repository
+			const stageCommand = `git -C ${tempDirPath} add packages/preview/${typstToml.package.name}/${typstToml.package.version}`;
+			const commitCommand = `git -C ${tempDirPath} commit -m "${typstToml.package.name}@${typstToml.package.version}"`;
+
+			if (options.dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would run ${chalk.gray(stageCommand)}`,
+				);
+			} else {
+				exec(stageCommand);
+				console.info(
+					`[Tyler] Ran ${chalk.gray(stageCommand)}`,
+				);
+			}
+
+			if (options.dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would run ${chalk.gray(commitCommand)}`,
+				);
+			} else {
+				exec(commitCommand);
+				console.info(
+					`[Tyler] Ran ${chalk.gray(commitCommand)}`,
+				);
+			}
+
+			// - Show instructions on how to publish the package
+			if (options.publish) {
+				// -- Check if gh is installed
+				let ghInstalled = false;
+				exec("gh --version", (error, stdout, stderr) => {
+					if (error) {
+						ghInstalled = false;
+					}
+					ghInstalled = true;
+				});
+
+				// -- If gh is not installed, show instructions on how to install it
+				if (!ghInstalled) {
+					console.info(
+						`[Tyler] To publish the package from command line, you can install GitHub CLI: https://cli.github.com/manual/installation`,
+					);
+				}
+
+				// -- Show the command to create a pull request
+				console.info(
+					"[Tyler] To publish the package, run the following commands:"
+				)
+				console.info(
+					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(tempDirPath)}`,
+				);
+				console.info(
+					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${typstToml.package.name}:${typstToml.package.version}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')}`,
+				);
+				console.log(
+					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
+				);
+				console.info(
+					`  ${chalk.cyan("$")} ${chalk.bold("rm")} -rf ${chalk.gray(tempDirPath)}`,
+				);
+			}
+		}
 	},
 } satisfies Command<{
 	entrypoint: string | undefined;
@@ -386,4 +529,5 @@ export default {
 	outdir: string | undefined;
 	ignore: string | undefined;
 	install: boolean | undefined;
+	publish: boolean | undefined;
 }>;
