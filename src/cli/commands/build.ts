@@ -70,7 +70,6 @@ export default {
 			name: "ignore",
 			description: "The files to ignore in the output directory",
 			type: String,
-			alias: "i",
 		},
 	],
 	usage: "<entrypoint> [options]",
