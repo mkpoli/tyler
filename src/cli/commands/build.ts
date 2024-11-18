@@ -37,33 +37,39 @@ export default {
 				"patch",
 			)}|${chalk.green("skip")}|${chalk.blue("string")}] The version to bump to: semver bump, skip as-is, or specify a custom version`,
 			type: String,
+			alias: "b",
 		},
 		{
 			name: "dry-run",
 			description:
 				"Preview the build process without actually modifying anything",
 			type: Boolean,
+			alias: "d",
 		},
 		{
 			name: "no-bump",
 			description: "Do not bump the version",
 			type: Boolean,
+			alias: "n",
 		},
 		{
 			name: "outdir",
 			description:
 				"The output directory where the compiled package will be placed",
 			type: String,
+			alias: "o",
 		},
 		{
 			name: "ignore",
 			description: "The files to ignore in the output directory",
 			type: String,
+			alias: "i",
 		},
 		{
 			name: "src",
 			description: "The source directory where the source code is located",
 			type: String,
+			alias: "s",
 		},
 	],
 	usage: "<entrypoint> [options]",

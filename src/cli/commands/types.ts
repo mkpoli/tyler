@@ -6,6 +6,7 @@ export type Command<T = Record<string, unknown>> = {
 	name: string | undefined;
 	description: string;
 	options: Option[];
+	alias?: string;
 	run: (options: T) => Promise<void>;
 	usage: string;
 };
