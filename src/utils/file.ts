@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 
 export async function fileExists(filePath: string): Promise<boolean> {
 	try {
@@ -33,5 +34,19 @@ export async function clearDirectoryWithoutDeletingIt(
 ): Promise<void> {
 	for (const file of await fs.readdir(dir)) {
 		await fs.rm(path.resolve(dir, file), { recursive: true, force: true });
+	}
+}
+
+export async function getDataDirectory(): Promise<string> {
+	const system = os.platform();
+	switch (system) {
+		case "linux":
+			return os.homedir() + "/.local/share";
+		case "darwin":
+			return os.homedir() + "/Library/Application Support";
+		case "win32":
+			return os.homedir() + "%APPDATA%";
+		default:
+			throw new Error(`Unsupported platform: ${system}`);
 	}
 }

@@ -17,6 +17,7 @@ import { type Config, updateOptionFromConfig } from "@/cli/config";
 import {
 	clearDirectoryWithoutDeletingIt,
 	fileExists,
+	getDataDirectory,
 	getWorkingDirectory,
 } from "@/utils/file";
 
@@ -70,6 +71,13 @@ export default {
 			name: "ignore",
 			description: "The files to ignore in the output directory",
 			type: String,
+		},
+		{
+			name: "install",
+			description: "Install the built package to Typst local package group",
+			type: Boolean,
+			defaultValue: false,
+			alias: "i",
 		},
 	],
 	usage: "<entrypoint> [options]",
@@ -348,6 +356,26 @@ export default {
 			}
 		}
 		// #endregion
+
+		// #region Install the built package to Typst local package group
+		if (options.install) {
+			// copy all files in to
+			const localPackagesDirectory = path.resolve(await getDataDirectory(), "typst", "packages", "local");
+			const currentPackageDirectory = path.resolve(localPackagesDirectory, typstTomlOutWithoutToolTylerWithBumpedVersion.package.name, typstTomlOutWithoutToolTylerWithBumpedVersion.package.version);
+
+			if (options.dryRun) {	
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would install to ${chalk.yellow(path.relative(workingDirectory, currentPackageDirectory))}`,
+				);
+			} else {
+				await fs.mkdir(currentPackageDirectory, { recursive: true });
+				await fs.cp(outputDir, currentPackageDirectory, { recursive: true });
+				console.info(
+					`[Tyler] Installed to ${chalk.yellow(currentPackageDirectory)}`,
+				);
+			}
+		}
+		// #endregion
 	},
 } satisfies Command<{
 	entrypoint: string | undefined;
@@ -357,4 +385,5 @@ export default {
 	srcdir: string | undefined;
 	outdir: string | undefined;
 	ignore: string | undefined;
+	install: boolean | undefined;
 }>;

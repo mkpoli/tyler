@@ -36,6 +36,12 @@ Build the package in current directory and output to `dist` directory:
 tyler build
 ```
 
+Build the package then install it to Typst local package group:
+
+```
+tyler build -i
+```
+
 Build the package in `/home/user/typst/some-package` and output to `/home/user/typst/packages/packages/preview/some-package/0.1.0`:
 
 ```
