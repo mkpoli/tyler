@@ -1,6 +1,15 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+export async function fileExists(filePath: string): Promise<boolean> {
+	try {
+		await fs.access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 export async function getWorkingDirectory(
 	entrypoint: string | undefined,
 ): Promise<string> {
@@ -8,7 +17,7 @@ export async function getWorkingDirectory(
 
 	const resolved = path.resolve(entrypoint);
 
-	if (!(await fs.exists(resolved))) {
+	if (!(await fileExists(resolved))) {
 		throw new Error(`Entrypoint ${entrypoint} does not exist`);
 	}
 
@@ -24,14 +33,5 @@ export async function clearDirectoryWithoutDeletingIt(
 ): Promise<void> {
 	for (const file of await fs.readdir(dir)) {
 		await fs.rm(path.resolve(dir, file), { recursive: true, force: true });
-	}
-}
-
-export async function fileExists(filePath: string): Promise<boolean> {
-	try {
-		await fs.access(filePath);
-		return true;
-	} catch {
-		return false;
 	}
 }
