@@ -22,6 +22,7 @@ import {
 	getDataDirectory,
 	getWorkingDirectory,
 } from "@/utils/file";
+import { execAndRedirect } from "@/utils/process";
 
 export default {
 	name: "build",
@@ -398,6 +399,9 @@ export default {
 
 		// #region Publish the built package to the Typst preview package index
 		if (options.publish) {
+			const builtPackageName = typstTomlOutWithoutToolTylerWithBumpedVersion.package.name;
+			const builtPackageVersion = typstTomlOutWithoutToolTylerWithBumpedVersion.package.version;
+
 			// - Make a temporary directory
 			const tempDirPath = path.join(os.tmpdir(), `tyler-publish-${typstToml.package.name}-${typstToml.package.version}`);
 			if (options.dryRun) {
@@ -413,7 +417,8 @@ export default {
 
 			// - Clone github:typst/packages
 			const gitRepoUrl = "https://github.com/typst/packages.git";
-			const cloneCommand = `git clone ${gitRepoUrl} ${tempDirPath}`;
+			const gitRepoDir = path.join(tempDirPath, "packages");
+
 
 			if (options.dryRun) {
 				console.info(
@@ -439,11 +444,11 @@ export default {
 
 			// - Copy the built package to the cloned repository
 			const packageDir = path.join(
-				tempDirPath,
+				gitRepoDir,
 				"packages",
 				"preview",
-				typstToml.package.name,
-				typstToml.package.version,
+				builtPackageName,
+				builtPackageVersion,
 			);
 			if (options.dryRun) {
 				console.info(
@@ -458,18 +463,16 @@ export default {
 			}
 
 			// - Stage, commit and push the built package to the cloned repository
-			const stageCommand = `git -C ${tempDirPath} add packages/preview/${typstToml.package.name}/${typstToml.package.version}`;
-			const commitCommand = `git -C ${tempDirPath} commit -m "${typstToml.package.name}@${typstToml.package.version}"`;
+			const stageCommand = `git -C ${gitRepoDir} add packages/preview/${builtPackageName}/${builtPackageVersion}`;
+			const commitCommand = `git -C ${gitRepoDir} commit -m ${builtPackageName}@${builtPackageVersion}`;
 
 			if (options.dryRun) {
 				console.info(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would run ${chalk.gray(stageCommand)}`,
 				);
 			} else {
-				exec(stageCommand);
-				console.info(
-					`[Tyler] Ran ${chalk.gray(stageCommand)}`,
-				);
+				await execAndRedirect(stageCommand);
+				console.info(`[Tyler] Ran ${chalk.gray(stageCommand)}`);
 			}
 
 			if (options.dryRun) {
@@ -477,39 +480,37 @@ export default {
 					`[Tyler] ${chalk.gray("(dry-run)")} Would run ${chalk.gray(commitCommand)}`,
 				);
 			} else {
-				exec(commitCommand);
-				console.info(
-					`[Tyler] Ran ${chalk.gray(commitCommand)}`,
-				);
+				await execAndRedirect(commitCommand);
+				console.info(`[Tyler] Ran ${chalk.gray(commitCommand)}`);
 			}
 
 			// - Show instructions on how to publish the package
 			if (options.publish) {
 				// -- Check if gh is installed
 				let ghInstalled = false;
-				exec("gh --version", (error, stdout, stderr) => {
-					if (error) {
-						ghInstalled = false;
-					}
+				try {
+					await execAndRedirect("gh --version");
 					ghInstalled = true;
-				});
+				} catch (error) {
+					ghInstalled = false;
+				}
 
 				// -- If gh is not installed, show instructions on how to install it
 				if (!ghInstalled) {
 					console.info(
-						`[Tyler] To publish the package from command line, you can install GitHub CLI: https://cli.github.com/manual/installation`,
+						"[Tyler] To publish the package from command line, you can install GitHub CLI: https://cli.github.com/manual/installation",
 					);
 				}
 
 				// -- Show the command to create a pull request
 				console.info(
-					"[Tyler] To publish the package, run the following commands:"
-				)
-				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(tempDirPath)}`,
+					"[Tyler] To publish the package, run the following commands:",
 				);
 				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${typstToml.package.name}:${typstToml.package.version}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')}`,
+					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(gitRepoDir)}`,
+				);
+				console.info(
+					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')}`,
 				);
 				console.log(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
