@@ -16,6 +16,7 @@ import type { Command } from "@/cli/commands/types";
 import { type Config, updateOptionFromConfig } from "@/cli/config";
 import {
 	clearDirectoryWithoutDeletingIt,
+	fileExists,
 	getWorkingDirectory,
 } from "@/utils/file";
 
@@ -87,7 +88,7 @@ export default {
 
 		// #region Read typst.toml
 		const typstTomlPath = path.resolve(workingDirectory, "typst.toml");
-		if (!(await fs.exists(typstTomlPath))) {
+		if (!(await fileExists(typstTomlPath))) {
 			throw new Error(`[Tyler] ${typstTomlPath} not found`);
 		}
 
@@ -194,7 +195,7 @@ export default {
 				? updatedOptions.srcdir
 				: path.resolve(workingDirectory, updatedOptions.srcdir);
 
-		if (!(await fs.exists(sourceDir))) {
+		if (!(await fileExists(sourceDir))) {
 			throw new Error(
 				`[Tyler] Source directory not found: ${chalk.gray(sourceDir)}`,
 			);
@@ -248,7 +249,7 @@ export default {
 			name: string,
 			mandatory: boolean,
 		): Promise<void> {
-			if (await fs.exists(path.resolve(workingDirectory, name))) {
+			if (await fileExists(path.resolve(workingDirectory, name))) {
 				if (options.dryRun) {
 					console.info(
 						`[Tyler] ${chalk.gray("(dry-run)")} Would copy ${chalk.green(name)} to ${chalk.yellow(path.relative(workingDirectory, outputDir))}`,

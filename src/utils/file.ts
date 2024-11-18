@@ -26,3 +26,12 @@ export async function clearDirectoryWithoutDeletingIt(
 		await fs.rm(path.resolve(dir, file), { recursive: true, force: true });
 	}
 }
+
+export async function fileExists(filePath: string): Promise<boolean> {
+	try {
+		await fs.access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
