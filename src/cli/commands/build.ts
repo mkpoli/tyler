@@ -54,6 +54,12 @@ export default {
 			alias: "n",
 		},
 		{
+			name: "srcdir",
+			description: "The source directory where the source code is located",
+			type: String,
+			alias: "s",
+		},
+		{
 			name: "outdir",
 			description:
 				"The output directory where the compiled package will be placed",
@@ -65,12 +71,6 @@ export default {
 			description: "The files to ignore in the output directory",
 			type: String,
 			alias: "i",
-		},
-		{
-			name: "src",
-			description: "The source directory where the source code is located",
-			type: String,
-			alias: "s",
 		},
 	],
 	usage: "<entrypoint> [options]",
@@ -102,15 +102,14 @@ export default {
 		// #endregion
 
 		// #region Update options
-		let updatedOptions: Partial<Config> & typeof options = options;
 		if (typstToml.tool?.tyler) {
 			console.info(
 				`[Tyler] Found ${chalk.green("[tool.tyler]")} in package's ${chalk.gray("typst.toml")}`,
 			);
 		}
 
-		updatedOptions = updateOptionFromConfig(
-			updatedOptions,
+		let updatedOptions = updateOptionFromConfig(
+			options,
 			typstToml.tool?.tyler ?? ({} as Partial<Config>),
 		);
 		// #endregion
@@ -353,10 +352,10 @@ export default {
 	},
 } satisfies Command<{
 	entrypoint: string | undefined;
-	version: string | undefined;
+	bump: string | undefined;
 	dryRun: boolean | undefined;
 	noBump: boolean | undefined;
-	outdir: string | undefined;
 	srcdir: string | undefined;
-	bump: string | undefined;
+	outdir: string | undefined;
+	ignore: string | undefined;
 }>;

@@ -11,7 +11,7 @@ function parseList(value: string): string[] {
 export function updateOptionFromConfig<T extends Record<string, unknown>>(
 	options: T,
 	config: Partial<Config>,
-): T {
+) {
 	// CLI options override config options
 	return {
 		...options,
