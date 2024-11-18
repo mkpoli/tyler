@@ -2,6 +2,8 @@
 
 Tyler is a Typst package compiler for the ease of packaging and publishing Typst libraries and templates.
 
+https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
+
 ## Features
 
 - 📦 Compile relative entrypoint import (e.g. `../lib.typst`) to preview import (e.g. `@preview/somepkgs:0.1.0`)
