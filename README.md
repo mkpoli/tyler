@@ -2,12 +2,12 @@
 
 Tyler is a Typst package compiler for the ease of packaging and publishing Typst libraries and templates.
 
-## Functions
+## Features
 
-- Compile relative entrypoint import (e.g. `../lib.typst`) to preview import (e.g. `@preview/somepkgs:0.1.0`)
-- Bump the version of the package interactively or with specified semver as CLI argument
+- 📦 Compile relative entrypoint import (e.g. `../lib.typst`) to preview import (e.g. `@preview/somepkgs:0.1.0`)
+- 🔄 Bump the version of the package interactively or with specified semver as CLI argument
+- 📥 Install package locally to be able to use with `@local/somepkgs:0.1.0`
 - (TODO) Publish the package to the Typst preview package index
-- (TODO) Install package locally
 - (TODO) Auto publishing
 
 ## Installation
