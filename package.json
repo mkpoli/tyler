@@ -38,7 +38,8 @@
 		"check": "biome check",
 		"check:fix": "biome check --write",
 		"build": "rimraf ./dist && bun build ./src/* --outdir ./dist --target node --minify",
-		"start": "bun run build && bun ./bin/tyler.js"
+		"start": "bun run build && bun ./bin/tyler.js",
+		"prepare": "bun run build"
 	},
 	"type": "module",
 	"dependencies": {
