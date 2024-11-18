@@ -66,3 +66,9 @@ bun install
 ```
 bun run start -- <command> [options]
 ```
+
+### Publishing
+
+```
+bun run bump && bun publish
+```
