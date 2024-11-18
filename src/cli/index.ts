@@ -1,8 +1,9 @@
 import chalk from "chalk";
 import cla from "command-line-args";
-import commands from "./commands";
-import type { Command } from "./commands/types";
-import { commandsOnly, help } from "./help";
+import commands from "@/cli/commands";
+import type { Command } from "@/cli/commands/types";
+import { commandsOnly, help } from "@/cli/help";
+import { version } from "@/utils/version";
 
 export async function main(): Promise<void> {
 	const options = cla(commands.root.options, {
@@ -16,7 +17,7 @@ export async function main(): Promise<void> {
 	const argv = options._unknown || [];
 
 	if (options.version) {
-		console.log(process.env.npm_package_version);
+		console.log(version);
 		return;
 	}
 

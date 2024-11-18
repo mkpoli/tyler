@@ -1,7 +1,8 @@
 import chalk from "chalk";
 import clu from "command-line-usage";
-import commands from "./commands";
-import type { Command } from "./commands/types";
+import commands from "@/cli/commands";
+import type { Command } from "@/cli/commands/types";
+import { version } from "@/utils/version"
 
 const LOGO = `
         .               oooo                     
@@ -20,7 +21,7 @@ export function help(command: Command): void {
 
 	if (command.name === undefined) {
 		sections.push({
-			header: `Tyler v${process.env.npm_package_version}`,
+			header: `Tyler v${version}`,
 			content:
 				"Typst package compiler for the ease of packaging and publishing Typst packages and templates.",
 		});
@@ -30,7 +31,7 @@ export function help(command: Command): void {
 		});
 	} else {
 		sections.push({
-			header: `Tyler v${process.env.npm_package_version}`,
+			header: `Tyler v${version}`,
 		});
 	}
 
