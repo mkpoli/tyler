@@ -551,9 +551,6 @@ export default {
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
 				);
-				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("rm")} -rf ${chalk.gray(tempDirPath)}`,
-				);
 			}
 		}
 	},
