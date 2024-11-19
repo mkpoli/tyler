@@ -263,17 +263,27 @@ export default {
 		// #region Copy meta files (README.md, LICENSE)
 		async function copyMetaFiles(name: string): Promise<void> {
 			if (await fileExists(path.resolve(workingDirectory, name))) {
+				const sourceFilePath = path.resolve(workingDirectory, name);
+				const relativeSourceFilePath = path.relative(
+					workingDirectory,
+					sourceFilePath,
+				);
+
+				const outputFilePath = path.resolve(outputDir, name);
+				const relativeOutputFilePath = path.relative(
+					workingDirectory,
+					outputFilePath,
+				);
+				await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
+
 				if (options.dryRun) {
 					console.info(
-						`[Tyler] ${chalk.gray("(dry-run)")} Would copy ${chalk.green(name)} to ${chalk.yellow(path.relative(workingDirectory, outputDir))}`,
+						`[Tyler] ${chalk.gray("(dry-run)")} Would copy ${chalk.green(relativeSourceFilePath)} to ${chalk.yellow(relativeOutputFilePath)}`,
 					);
 				} else {
-					await fs.copyFile(
-						path.resolve(workingDirectory, name),
-						path.resolve(outputDir, name),
-					);
+					await fs.copyFile(sourceFilePath, outputFilePath);
 					console.info(
-						`[Tyler] Copied ${chalk.green(name)} to ${chalk.yellow(path.relative(workingDirectory, outputDir))}`,
+						`[Tyler] Copied ${chalk.green(relativeSourceFilePath)} to ${chalk.yellow(relativeOutputFilePath)}`,
 					);
 				}
 			} else {
@@ -285,6 +295,12 @@ export default {
 
 		await copyMetaFiles("README.md");
 		await copyMetaFiles("LICENSE");
+
+		if (typstTomlOutWithoutToolTylerWithBumpedVersion.template?.thumbnail) {
+			await copyMetaFiles(
+				typstTomlOutWithoutToolTylerWithBumpedVersion.template.thumbnail,
+			);
+		}
 		// #endregion
 
 		// #region Replace entrypoint in templates
