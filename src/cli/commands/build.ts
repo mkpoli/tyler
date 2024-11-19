@@ -551,6 +551,9 @@ export default {
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
 				);
+				console.info(
+					"Then go to your pull request page and fill in the details to wait for the package to be approved",
+				);
 			}
 		}
 	},
