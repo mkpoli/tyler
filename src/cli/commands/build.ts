@@ -548,7 +548,7 @@ export default {
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')}`,
 				);
-				console.log(
+				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
 				);
 				console.info(
