@@ -398,14 +398,13 @@ export default {
 
 		// #region Publish the built package to the Typst preview package index
 		if (options.publish) {
-			const builtPackageName = typstTomlOutWithoutToolTylerWithBumpedVersion.package.name;
-			const builtPackageVersion = typstTomlOutWithoutToolTylerWithBumpedVersion.package.version;
+			const builtPackageName =
+				typstTomlOutWithoutToolTylerWithBumpedVersion.package.name;
+			const builtPackageVersion =
+				typstTomlOutWithoutToolTylerWithBumpedVersion.package.version;
 
 			// - Make a temporary directory
-			const tempDirPath = path.join(
-				os.tmpdir(),
-				`tyler-publish`,
-			);
+			const tempDirPath = path.join(os.tmpdir(), `tyler-publish`);
 			if (options.dryRun) {
 				console.info(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would make a temporary directory in ${chalk.gray(tempDirPath)}`,
@@ -430,9 +429,7 @@ export default {
 					);
 				} else {
 					await fs.rm(gitRepoDir, { recursive: true });
-					console.info(
-						`[Tyler] Removed ${chalk.gray(gitRepoDir)}`,
-					);
+					console.info(`[Tyler] Removed ${chalk.gray(gitRepoDir)}`);
 				}
 			}
 
@@ -543,6 +540,9 @@ export default {
 				);
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(gitRepoDir)}`,
+				);
+				console.info(
+					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("repo set-default")} ${chalk.gray(gitRepoUrl)}`,
 				);
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')}`,
