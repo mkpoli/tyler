@@ -12,6 +12,7 @@ export type TypstToml = {
 	template?: {
 		path: string;
 		entrypoint: string;
+		thumbnail: string;
 	};
 	tool?: Record<string, unknown>;
 };
