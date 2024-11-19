@@ -550,7 +550,7 @@ export default {
 
 				// -- Show the command to create a pull request
 				console.info(
-					"[Tyler] To publish the package, run the following commands:",
+					`[Tyler] To publish the package, run the following commands (if you are not already logged in via GitHub CLI, run \`${chalk.bold("gh")} ${chalk.green("auth login")}\` first):`,
 				);
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(gitRepoDir)}`,
@@ -565,7 +565,9 @@ export default {
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
 				);
 				console.info(
-					"Then go to your pull request page and fill in the details to wait for the package to be approved",
+					`Then go to your draft pull request on GitHub (following the link similar to ${chalk.gray(
+						"https://github.com/typst/packages/pull/<number>",
+					)} from the output of the command above) and fill in the details to wait for the package to be approved`,
 				);
 			}
 		}
