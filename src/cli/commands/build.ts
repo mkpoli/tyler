@@ -308,9 +308,9 @@ export default {
 					"utf8",
 				);
 
-				const templateFileRelativeToSrcDir = path.relative(
+				const relativeTemplateFilePath = path.relative(
 					sourceDir,
-					templateFile,
+					path.resolve(templatePath, templateFile),
 				);
 
 				if (
@@ -318,7 +318,7 @@ export default {
 						`import "${libraryEntrypointRelativeToTemplateFile}"`,
 					)
 				) {
-					modifiedFiles[templateFileRelativeToSrcDir] = content.replace(
+					modifiedFiles[relativeTemplateFilePath] = content.replace(
 						`import "${libraryEntrypointRelativeToTemplateFile}"`,
 						`import "@preview/${typstToml.package.name}:${bumpedVersion}"`,
 					);
@@ -345,9 +345,10 @@ export default {
 					);
 					continue;
 				}
-				await fs.writeFile(path.resolve(outputDir, file), modifiedFiles[file]);
+				const outputFilePath = path.resolve(outputDir, file);
+				await fs.writeFile(outputFilePath, modifiedFiles[file]);
 				console.info(
-					`[Tyler] Copied modified version of ${chalk.green(path.relative(workingDirectory, file))} to ${chalk.yellow(path.relative(workingDirectory, outputDir))}`,
+					`[Tyler] Copied modified version of ${chalk.green(file)} to ${chalk.yellow(path.relative(workingDirectory, outputFilePath))}`,
 				);
 			} else {
 				const sourceFilePath = path.resolve(sourceDir, file);
