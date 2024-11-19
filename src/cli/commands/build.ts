@@ -404,7 +404,7 @@ export default {
 				typstTomlOutWithoutToolTylerWithBumpedVersion.package.version;
 
 			// - Make a temporary directory
-			const tempDirPath = path.join(os.tmpdir(), `tyler-publish`);
+			const tempDirPath = path.join(os.tmpdir(), "tyler-publish");
 			if (options.dryRun) {
 				console.info(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would make a temporary directory in ${chalk.gray(tempDirPath)}`,
