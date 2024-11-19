@@ -33,6 +33,11 @@ export function help(command: Command): void {
 		sections.push({
 			header: `Tyler v${version}`,
 		});
+
+		sections.push({
+			header: "Description",
+			content: `${chalk.green.bold(command.name)}    ${command.description}`,
+		});
 	}
 
 	sections.push({
