@@ -90,7 +90,7 @@ bun install
 ### Emulating
 
 ```
-bun run start -- <command> [options]
+bun tyler <command> [options]
 ```
 
 ### Publishing
