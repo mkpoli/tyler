@@ -261,10 +261,7 @@ export default {
 		// #endregion
 
 		// #region Copy meta files (README.md, LICENSE)
-		async function copyMetaFiles(
-			name: string,
-			mandatory: boolean,
-		): Promise<void> {
+		async function copyMetaFiles(name: string): Promise<void> {
 			if (await fileExists(path.resolve(workingDirectory, name))) {
 				if (options.dryRun) {
 					console.info(
@@ -286,8 +283,8 @@ export default {
 			}
 		}
 
-		await copyMetaFiles("README.md", true);
-		await copyMetaFiles("LICENSE", false);
+		await copyMetaFiles("README.md");
+		await copyMetaFiles("LICENSE");
 		// #endregion
 
 		// #region Replace entrypoint in templates
