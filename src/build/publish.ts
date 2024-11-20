@@ -67,6 +67,10 @@ export async function cloneOrCleanRepo(
 		// - Fetch the latest changes from origin
 		const fetchCommand = `git -C ${gitRepoDir} fetch origin`;
 		await execAndRedirect(fetchCommand);
+
+		// - Create a new branch from origin/main
+		const createBranchCommand = `git -C ${gitRepoDir} checkout -b ${builtPackageName}-${builtPackageVersion} origin/main`;
+		await execAndRedirect(createBranchCommand);
 	}
 
 	return gitRepoDir;
