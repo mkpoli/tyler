@@ -31,6 +31,14 @@ bun i -g @mkpoli/tyler
 
 It is recommended to put all your source files in a `src` directory and run Tyler from the root of your project, or you can specify custom source directory (even root directory) with `--srcdir` option, however, in that case, you need to add files to `--ignore` option manually (e.g. `--ignore="CONTRIBUTING.md,hello.world,neko/*"`) to remove them from the distributed package.
 
+### Basics
+
+Run the following command in your typst package will check the package and build it, then install the built package to Typst local package group (`-i`) as well as prepare the package for publish and display instructions to create a PR (`-p`):
+
+```bash
+tyler build -i -p
+```
+
 ### Examples
 
 #### Check
