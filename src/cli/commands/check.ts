@@ -5,13 +5,13 @@ import os from "node:os";
 import path from "node:path";
 
 import chalk from "chalk";
+import imageSize from "image-size";
+import imageType from "image-type";
 import { minimatch } from "minimatch";
 import semver from "semver";
 import * as toml from "smol-toml";
 import spdxExpressionValidate from "spdx-expression-validate";
 import validUrl from "valid-url";
-import imageSize from "image-size";
-import imageType from "image-type";
 
 import {
 	type TypstToml,
