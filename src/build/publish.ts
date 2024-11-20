@@ -4,7 +4,7 @@ import path from "node:path";
 import chalk from "chalk";
 
 import { fileExists } from "@/utils/file";
-import { execAndRedirect } from "@/utils/process";
+import { execAndRedirect, isCommandInstalled } from "@/utils/process";
 
 export const TYPST_PACKAGES_REPO_URL = "https://github.com/typst/packages.git";
 export async function cloneOrCleanRepo(
@@ -13,6 +13,10 @@ export async function cloneOrCleanRepo(
 	builtPackageName: string,
 	builtPackageVersion: string,
 ): Promise<string> {
+	if (!(await isCommandInstalled("git"))) {
+		throw new Error("[Tyler] Git is not installed, cannot proceed");
+	}
+
 	const gitRepoDir = path.join(dir, "packages");
 
 	const isGitRepo = await fileExists(path.join(gitRepoDir, ".git"));
