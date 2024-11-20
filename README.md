@@ -6,11 +6,11 @@ https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
 
 ## Features
 
-- 📥 Install package locally to be able to use with `@local/somepkgs:0.1.0`
-- 📄 Compile relative entrypoint import (e.g. `../lib.typst`) to preview import (e.g. `@preview/somepkgs:0.1.0`)
+- 📥 Install package locally to be able to use with `@local/somepkg:0.1.0`
+- 📄 Compile relative entrypoint import (e.g. `../lib.typ`) to preview import (e.g. `@preview/somepkg:0.1.0`)
 - 🔄 Bump the version of the package interactively or with specified semver as CLI argument
 - 📦 Package the library or package into `typst/packages` ready for publishing
-- 🔍 Check if the package manifest (`typetst.toml`) is valid before publishing
+- 🔍 Check if the package manifest (`typst.toml`) is valid before publishing
 - 🚀 Semi-automatic publishing that creates a PR to the Typst preview package repository
 - (TODO) Prompt for PR fulfillment
 - (TODO) Automatic publishing
