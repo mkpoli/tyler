@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 export async function execAndRedirect(command: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		let [cmd, ...args] = command.split(" ");
+		const [cmd, ...args] = command.split(" ");
 		const child = spawn(cmd, args, {
 			stdio: "inherit",
 		});
