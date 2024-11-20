@@ -38,6 +38,7 @@
 		"check": "biome check",
 		"check:fix": "biome check --write",
 		"build": "rimraf ./dist && bun build ./src/* --outdir ./dist --target node --minify",
+		"prebuild": "biome check --write",
 		"tyler": "bun run build && bun ./bin/tyler.js",
 		"bump": "bumpp",
 		"prepare": "bun run build"
