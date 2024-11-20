@@ -1,0 +1,33 @@
+[package]
+name = "my-package"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = [
+    "Tyler",
+    "Tyler <@1234>",
+    "Tyler <https://example.com>",
+    "Tyler <1234@example.com>",
+]
+license = "MIT"
+repository = "https://github.com/mkpoli/my-package"
+homepage = "https://example.com"
+keywords = ["numeral", "stats"]
+categories = ["model", "paper"]
+disciplines = [
+    "architecture",
+    "drawing",
+    "fashion",
+    "film",
+    "painting",
+    "photography",
+    "politics",
+    "sociology",
+    "theater",
+]
+compiler = "0.12.0"
+exclude = ["something_bad.txt"]
+
+[template]
+path = "template"
+entrypoint = "main.typ"
+thumbnail = "thumbnail.png"
