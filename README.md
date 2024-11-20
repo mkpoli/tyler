@@ -6,11 +6,14 @@ https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
 
 ## Features
 
-- 📦 Compile relative entrypoint import (e.g. `../lib.typst`) to preview import (e.g. `@preview/somepkgs:0.1.0`)
-- 🔄 Bump the version of the package interactively or with specified semver as CLI argument
 - 📥 Install package locally to be able to use with `@local/somepkgs:0.1.0`
-- (TODO) Publish the package to the Typst preview package index
-- (TODO) Auto publishing
+- 📄 Compile relative entrypoint import (e.g. `../lib.typst`) to preview import (e.g. `@preview/somepkgs:0.1.0`)
+- 🔄 Bump the version of the package interactively or with specified semver as CLI argument
+- 📦 Package the library or package into `typst/packages` ready for publishing
+- 🔍 Check if the package manifest (`typetst.toml`) is valid before publishing
+- 🚀 Semi-automatic publishing that creates a PR to the Typst preview package repository
+- (TODO) Prompt for PR fulfillment
+- (TODO) Automatic publishing
 
 ## Installation
 
@@ -29,6 +32,14 @@ bun i -g @mkpoli/tyler
 It is recommended to put all your source files in a `src` directory and run Tyler from the root of your project, or you can specify custom source directory (even root directory) with `--srcdir` option, however, in that case, you need to add files to `--ignore` option manually (e.g. `--ignore="CONTRIBUTING.md,hello.world,neko/*"`) to remove them from the distributed package.
 
 ### Examples
+
+#### Check
+
+Check if the package manifest (`typetst.toml`) is valid and required properties / files e   :
+
+```
+tyler check
+```
 
 #### Build
 
