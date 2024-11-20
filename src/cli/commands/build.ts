@@ -23,6 +23,8 @@ import {
 } from "@/utils/file";
 import { execAndRedirect } from "@/utils/process";
 
+import check from "./check";
+
 export default {
 	name: "build",
 	description: "Bump the version and build a Typst package",
@@ -89,9 +91,18 @@ export default {
 			defaultValue: false,
 			alias: "p",
 		},
+		{
+			name: "no-check",
+			description: "Do not check the package before building",
+			type: Boolean,
+		},
 	],
 	usage: "<entrypoint> [options]",
 	async run(options): Promise<void> {
+		if (!options.noCheck) {
+			await check.run(options);
+		}
+
 		// #region Working directory
 		const workingDirectory =
 			options.entrypoint === undefined
@@ -582,4 +593,5 @@ export default {
 	ignore: string | undefined;
 	install: boolean | undefined;
 	publish: boolean | undefined;
+	noCheck: boolean | undefined;
 }>;
