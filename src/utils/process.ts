@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import commandExists from "command-exists";
 
 export async function execAndRedirect(command: string): Promise<void> {
 	return new Promise((resolve, reject) => {
@@ -17,4 +18,13 @@ export async function execAndRedirect(command: string): Promise<void> {
 			resolve();
 		});
 	});
+}
+
+export async function isCommandInstalled(command: string): Promise<boolean> {
+	try {
+		await commandExists(command);
+		return true;
+	} catch {
+		return false;
+	}
 }
