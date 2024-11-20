@@ -24,6 +24,7 @@ import { execAndRedirect } from "@/utils/process";
 
 import { stringifyToml } from "@/utils/manifest";
 import check from "./check";
+import { cloneOrCleanRepo, TYPST_PACKAGES_REPO_URL } from "@/build/publish";
 
 export default {
 	name: "build",
@@ -441,63 +442,13 @@ export default {
 				);
 			}
 
-			// - Clone github:typst/packages
-			const gitRepoUrl = "https://github.com/typst/packages.git";
-			const gitRepoDir = path.join(tempDirPath, "packages");
-
-			const isGitRepo = await fileExists(path.join(gitRepoDir, ".git"));
-			if (!isGitRepo) {
-				// - Remove the directory
-				if (options.dryRun) {
-					console.info(
-						`[Tyler] ${chalk.gray("(dry-run)")} Would remove ${chalk.gray(gitRepoDir)}`,
-					);
-				} else {
-					await fs.rm(gitRepoDir, { recursive: true });
-					console.info(`[Tyler] Removed ${chalk.gray(gitRepoDir)}`);
-				}
-			}
-
-			if (!(await fileExists(gitRepoDir))) {
-				const cloneCommand = `git clone ${gitRepoUrl} ${gitRepoDir} --depth 1`;
-
-				if (options.dryRun) {
-					console.info(
-						`[Tyler] ${chalk.gray("(dry-run)")} Would clone ${chalk.gray(gitRepoUrl)} into ${chalk.gray(gitRepoDir)}`,
-					);
-				} else {
-					try {
-						await execAndRedirect(cloneCommand);
-						console.info(
-							`[Tyler] Cloned ${chalk.gray(gitRepoUrl)} into ${chalk.gray(gitRepoDir)}`,
-						);
-					} catch (error) {
-						if (error instanceof Error) {
-							console.info(
-								`[Tyler] ${chalk.red("Error cloning repository:")} ${error.message}`,
-							);
-						}
-					}
-				}
-			} else {
-				// - Clean up git working tree
-				if (options.dryRun) {
-					console.info(
-						`[Tyler] ${chalk.gray("(dry-run)")} Would clean up git working tree in ${chalk.gray(gitRepoDir)}`,
-					);
-				} else {
-					const cleanCommand = `git -C ${gitRepoDir} reset --hard HEAD`;
-					await execAndRedirect(cleanCommand);
-				}
-
-				// - Fetch the latest changes from origin
-				const fetchCommand = `git -C ${gitRepoDir} fetch origin`;
-				await execAndRedirect(fetchCommand);
-
-				// - Create a new branch from origin/main
-				const createBranchCommand = `git -C ${gitRepoDir} checkout -b ${builtPackageName}-${builtPackageVersion} origin/main`;
-				await execAndRedirect(createBranchCommand);
-			}
+			// - Clone github:typst/packages or clean the repository
+			const gitRepoDir = await cloneOrCleanRepo(
+				tempDirPath,
+				options.dryRun ?? false,
+				builtPackageName,
+				builtPackageVersion,
+			);
 
 			// - Copy the built package to the cloned repository
 			const packageDir = path.join(
@@ -567,7 +518,7 @@ export default {
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(gitRepoDir)}`,
 				);
 				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("repo set-default")} ${chalk.gray(gitRepoUrl)}`,
+					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("repo set-default")} ${chalk.gray(TYPST_PACKAGES_REPO_URL)}`,
 				);
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')} --draft`,
