@@ -6,6 +6,8 @@ import chalk from "chalk";
 import { minimatch } from "minimatch";
 import semver from "semver";
 
+import tree from "tree-node-cli";
+
 import {
 	type TypstToml,
 	getTypstIndexPackageMetadata,
@@ -22,9 +24,9 @@ import {
 } from "@/utils/file";
 import { execAndRedirect } from "@/utils/process";
 
+import { TYPST_PACKAGES_REPO_URL, cloneOrCleanRepo } from "@/build/publish";
 import { stringifyToml } from "@/utils/manifest";
 import check from "./check";
-import { cloneOrCleanRepo, TYPST_PACKAGES_REPO_URL } from "@/build/publish";
 
 export default {
 	name: "build",
@@ -469,6 +471,15 @@ export default {
 					`[Tyler] Copied files from ${chalk.gray(outputDir)} to ${chalk.gray(packageDir)}`,
 				);
 			}
+
+			// - Tree the copied files
+			const treeResult = tree(packageDir, {
+				allFiles: true,
+				sizes: true,
+			});
+			console.info(
+				`[Tyler] Tree of the copied files: \n${chalk.gray(treeResult)}`,
+			);
 
 			// - Stage, commit and push the built package to the cloned repository
 			const stageCommand = `git -C ${gitRepoDir} add packages/preview/${builtPackageName}/${builtPackageVersion}`;
