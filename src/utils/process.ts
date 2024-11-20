@@ -20,6 +20,21 @@ export async function execAndRedirect(command: string): Promise<void> {
 	});
 }
 
+export async function exec(command: string): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const [cmd, ...args] = command.split(" ");
+		const child = spawn(cmd, args, {
+			stdio: "ignore",
+		});
+		child.on("error", (error) => {
+			reject(error);
+		});
+		child.on("exit", () => {
+			resolve();
+		});
+	});
+}
+
 export async function isCommandInstalled(command: string): Promise<boolean> {
 	try {
 		await commandExists(command);
