@@ -8,6 +8,15 @@ export type TypstToml = {
 		version: string;
 		description?: string;
 		entrypoint?: string;
+		authors?: string[];
+		license?: string;
+		homepage?: string;
+		repository?: string;
+		keywords?: string[];
+		categories?: string[];
+		disciplines?: string[];
+		compiler?: string;
+		exclude?: string[];
 	};
 	template?: {
 		path: string;
@@ -24,9 +33,11 @@ export type TypstIndexPackageMetadata = Partial<{
 	authors: string[];
 	license: string;
 	description: string;
+	homepage: string;
 	repository: string;
 	keywords: string[];
 	categories: string[];
+	disciplines: string[];
 	compiler: string;
 	exclude: string[];
 	template: {
