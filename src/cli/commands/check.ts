@@ -597,7 +597,8 @@ export default {
 			if (
 				!(await fileExists(
 					path.resolve(workingDirectory, typstToml.template.path),
-				))
+				)) &&
+				!(await fileExists(path.resolve(sourceDir, typstToml.template.path)))
 			) {
 				console.info(
 					`${chalk.red("[Tyler]")} The template path ${chalk.red(typstToml.template.path)} does not exist`,
@@ -622,6 +623,13 @@ export default {
 				!(await fileExists(
 					path.resolve(
 						workingDirectory,
+						typstToml.template.path,
+						typstToml.template.entrypoint,
+					),
+				)) &&
+				!(await fileExists(
+					path.resolve(
+						sourceDir,
 						typstToml.template.path,
 						typstToml.template.entrypoint,
 					),
