@@ -43,7 +43,7 @@ tyler build -i -p
 
 #### Check
 
-Check if the package manifest (`typetst.toml`) is valid and required properties / files e   :
+Check if the package manifest (`typst.toml`) is valid and required properties / files e   :
 
 ```
 tyler check
@@ -89,7 +89,7 @@ fatal: fetch-pack: invalid index-pack output
 
 ### Configuration
 
-You can pass options to `tyler` commands directly or via `[tool.tyler]` section in your `typetst.toml` file. The CLI options will override the config options, and the config options are limited to the following (with the default value noted):
+You can pass options to `tyler` commands directly or via `[tool.tyler]` section in your `typst.toml` file. The CLI options will override the config options, and the config options are limited to the following (with the default value noted):
 
 ```
 [tool.tyler]
