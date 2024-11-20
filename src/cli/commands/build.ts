@@ -5,7 +5,6 @@ import path from "node:path";
 import chalk from "chalk";
 import { minimatch } from "minimatch";
 import semver from "semver";
-import * as toml from "smol-toml";
 
 import {
 	type TypstToml,
@@ -23,6 +22,7 @@ import {
 } from "@/utils/file";
 import { execAndRedirect } from "@/utils/process";
 
+import { stringifyToml } from "@/utils/manifest";
 import check from "./check";
 
 export default {
@@ -207,7 +207,7 @@ export default {
 			};
 			await fs.writeFile(
 				typstTomlPath,
-				toml.stringify(updatedOriginalTypstTomlData),
+				await stringifyToml(updatedOriginalTypstTomlData),
 			);
 			console.info(
 				`[Tyler] Bumped version in ${chalk.green("typst.toml")} to ${chalk.yellow(path.relative(workingDirectory, typstTomlPath))}`,
@@ -263,7 +263,7 @@ export default {
 			};
 			await fs.writeFile(
 				distTypstTomlPath,
-				toml.stringify(outputTypstTomlData),
+				await stringifyToml(outputTypstTomlData),
 			);
 			console.info(
 				`[Tyler] Copied ${chalk.green("typst.toml")} to ${chalk.yellow(path.relative(workingDirectory, distTypstTomlPath))}`,
