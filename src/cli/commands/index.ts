@@ -1,4 +1,5 @@
 import build from "./build";
+import check from "./check";
 import type { Command } from "./types";
 
 const help = {
@@ -35,6 +36,7 @@ const root: Command = {
 
 const commands = {
 	build,
+	check,
 };
 
 const injected = Object.fromEntries(
