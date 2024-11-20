@@ -5,6 +5,8 @@ import chalk from "chalk";
 
 import { fileExists } from "@/utils/file";
 import { execAndRedirect, isCommandInstalled } from "@/utils/process";
+import { isValidGitRepository } from "@/utils/git";
+import inquirer from "inquirer";
 
 export const TYPST_PACKAGES_REPO_URL = "https://github.com/typst/packages.git";
 export async function cloneOrCleanRepo(
@@ -19,20 +21,38 @@ export async function cloneOrCleanRepo(
 
 	const gitRepoDir = path.join(dir, "packages");
 
-	const isGitRepo = await fileExists(path.join(gitRepoDir, ".git"));
-	if (!isGitRepo) {
-		// - Remove the directory
-		if (dryRun) {
-			console.info(
-				`[Tyler] ${chalk.gray("(dry-run)")} Would remove ${chalk.gray(gitRepoDir)}`,
-			);
-		} else {
-			await fs.rm(gitRepoDir, { recursive: true });
-			console.info(`[Tyler] Removed ${chalk.gray(gitRepoDir)}`);
-		}
-	}
-
 	if (!(await fileExists(gitRepoDir))) {
+		const isGitRepo = await isValidGitRepository(gitRepoDir);
+		if (!isGitRepo) {
+			console.info(
+				`[Tyler] ${chalk.gray(gitRepoDir)} is not a valid git repository, can we remove it?`,
+			);
+
+			const { remove }: { remove: boolean } = await inquirer.prompt([
+				{
+					type: "confirm",
+					name: "remove",
+					message: "Remove the directory?",
+				},
+			]);
+
+			if (remove) {
+				// - Remove the directory
+				if (dryRun) {
+					console.info(
+						`[Tyler] ${chalk.gray("(dry-run)")} Would remove ${chalk.gray(gitRepoDir)}`,
+					);
+				} else {
+					await fs.rm(gitRepoDir, { recursive: true });
+					console.info(`[Tyler] Removed ${chalk.gray(gitRepoDir)}`);
+				}
+			} else {
+				throw new Error(
+					`[Tyler] ${chalk.gray(gitRepoDir)} is not a valid git repository, and we cannot remove it`,
+				);
+			}
+		}
+
 		const cloneCommand = `git clone ${TYPST_PACKAGES_REPO_URL} ${gitRepoDir} --depth 1`;
 
 		if (dryRun) {
