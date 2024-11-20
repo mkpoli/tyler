@@ -10,6 +10,8 @@ import semver from "semver";
 import * as toml from "smol-toml";
 import isOSIApproved from "spdx-is-osi";
 import validUrl from "valid-url";
+import imageSize from "image-size";
+import imageType from "image-type";
 
 import {
 	type TypstToml,
@@ -580,10 +582,168 @@ export default {
 		}
 		// #endregion
 
-		// // #region Get entrypoint
+		// #region Check template
+		if (typstToml.template) {
+			console.info("[Tyler] Package is template");
+
+			if (!typstToml.template.path) {
+				console.info(
+					`${chalk.red("[Tyler]")} ${chalk.red("template.path")} is required`,
+				);
+				return;
+			}
+
+			if (
+				!(await fileExists(
+					path.resolve(workingDirectory, typstToml.template.path),
+				))
+			) {
+				console.info(
+					`${chalk.red("[Tyler]")} The template path ${chalk.red(typstToml.template.path)} does not exist`,
+				);
+				return;
+			}
+
+			console.info(
+				`${chalk.greenBright("[Tyler]")} Template path is valid: ${chalk.yellow(
+					typstToml.template.path,
+				)}`,
+			);
+
+			if (!typstToml.template.entrypoint) {
+				console.info(
+					`${chalk.red("[Tyler]")} ${chalk.red("template.entrypoint")} is required`,
+				);
+				return;
+			}
+
+			if (
+				!(await fileExists(
+					path.resolve(
+						workingDirectory,
+						typstToml.template.path,
+						typstToml.template.entrypoint,
+					),
+				))
+			) {
+				console.info(
+					`${chalk.red("[Tyler]")} The entrypoint ${chalk.red(
+						typstToml.template.entrypoint,
+					)} does not exist`,
+				);
+				return;
+			}
+
+			console.info(
+				`${chalk.greenBright("[Tyler]")} Template entrypoint is valid: ${chalk.yellow(
+					typstToml.template.entrypoint,
+				)}`,
+			);
+
+			if (!typstToml.template.thumbnail) {
+				console.info(
+					`${chalk.red("[Tyler]")} ${chalk.red("template.thumbnail")} is required`,
+				);
+				return;
+			}
+
+			if (
+				!(await fileExists(
+					path.resolve(workingDirectory, typstToml.template.thumbnail),
+				))
+			) {
+				console.info(
+					`${chalk.red("[Tyler]")} The thumbnail file ${chalk.red(
+						typstToml.template.thumbnail,
+					)} does not exist`,
+				);
+				return;
+			}
+
+			if (
+				!["png", "webp"].includes(
+					path.extname(typstToml.template.thumbnail).slice(1),
+				)
+			) {
+				console.info(
+					`${chalk.red("[Tyler]")} The thumbnail ${chalk.red(
+						typstToml.template.thumbnail,
+					)} is not a valid image`,
+				);
+				return;
+			}
+
+			const thumbnailType = await imageType(
+				await fs.readFile(
+					path.resolve(workingDirectory, typstToml.template.thumbnail),
+				),
+			);
+
+			if (
+				!thumbnailType ||
+				!["image/png", "image/webp"].includes(thumbnailType.mime)
+			) {
+				console.info(
+					`${chalk.red("[Tyler]")} The thumbnail ${chalk.red(
+						typstToml.template.thumbnail,
+					)} is not a valid image`,
+				);
+				return;
+			}
+
+			const thumbnailDimensions = imageSize(
+				path.resolve(workingDirectory, typstToml.template.thumbnail),
+			);
+			const MIN_THUMBNAIL_SIZE = 1080;
+			if (!thumbnailDimensions.width || !thumbnailDimensions.height) {
+				console.info(
+					`${chalk.red("[Tyler]")} The thumbnail ${chalk.red(
+						typstToml.template.thumbnail,
+					)} does not have valid dimensions`,
+				);
+				return;
+			}
+
+			if (
+				Math.max(thumbnailDimensions.width, thumbnailDimensions.height) <
+				MIN_THUMBNAIL_SIZE
+			) {
+				console.info(
+					`${chalk.red("[Tyler]")} The thumbnail ${chalk.red(
+						typstToml.template.thumbnail,
+					)} is too small, it must be at least ${MIN_THUMBNAIL_SIZE}px on the longest side`,
+				);
+			}
+
+			const thumbnailFilesize = (
+				await fs.stat(
+					path.resolve(workingDirectory, typstToml.template.thumbnail),
+				)
+			).size;
+
+			// "Its file size must not exceed 3MB."
+			const MAX_THUMBNAIL_SIZE = 1024 * 1024 * 3;
+
+			if (thumbnailFilesize > MAX_THUMBNAIL_SIZE) {
+				console.info(
+					`${chalk.red("[Tyler]")} The thumbnail ${chalk.red(
+						typstToml.template.thumbnail,
+					)} is too large, it must be less than ${MAX_THUMBNAIL_SIZE} bytes`,
+				);
+			}
+
+			console.info(
+				`${chalk.greenBright("[Tyler]")} Template thumbnail is valid: ${chalk.yellow(
+					typstToml.template.thumbnail,
+				)} (${thumbnailFilesize} bytes < ${MAX_THUMBNAIL_SIZE} bytes, ${thumbnailDimensions.width}x${thumbnailDimensions.height}) >= ${MIN_THUMBNAIL_SIZE}px`,
+			);
+		}
+		// #endregion
+
+		// #region Get entrypoint
 		// const entrypoint = typstToml.package.entrypoint ?? "lib.typ";
 		// // TODO: Check if the entrypoint is valid
-		// // #endregion
+		// #endregion
 	},
 } satisfies Command<{
 	entrypoint: string | undefined;
