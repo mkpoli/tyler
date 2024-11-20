@@ -8,7 +8,7 @@ import chalk from "chalk";
 import { minimatch } from "minimatch";
 import semver from "semver";
 import * as toml from "smol-toml";
-import isOSIApproved from "spdx-is-osi";
+import spdxExpressionValidate from "spdx-expression-validate";
 import validUrl from "valid-url";
 import imageSize from "image-size";
 import imageType from "image-type";
@@ -336,19 +336,20 @@ export default {
 			return;
 		}
 
-		let isOSIApprovedLicense = false;
+		// "Must contain a valid SPDX-2 expression describing one or multiple OSI-approved licenses."
+		let isValidLicense = false;
 
 		try {
-			isOSIApprovedLicense = isOSIApproved(typstToml.package.license);
+			isValidLicense = spdxExpressionValidate(typstToml.package.license);
 		} catch (error) {
-			isOSIApprovedLicense = false;
+			isValidLicense = false;
 		}
 
-		if (!isOSIApprovedLicense) {
+		if (!isValidLicense) {
 			console.info(
 				`${chalk.red("[Tyler]")} The license ${chalk.red(
 					typstToml.package.license,
-				)} is not an OSI approved license`,
+				)} is not a valid SPDX-2 expression or OSI approved license`,
 			);
 			return;
 		}
