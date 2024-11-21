@@ -117,3 +117,6 @@ bun tyler <command> [options]
 ```
 bun run bump && bun publish
 ```
+## License
+
+[MIT License](./LICENSE) © 2024 [mkpoli](https://mkpo.li/)
