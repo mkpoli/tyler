@@ -117,6 +117,11 @@ bun tyler <command> [options]
 ```
 bun run bump && bun publish
 ```
+
+## Trivia
+
+Tyler is named after something like **Ty**pst + Compi**ler** or **Ty**pst + But**ler**.
+
 ## License
 
 [MIT License](./LICENSE) © 2024 [mkpoli](https://mkpo.li/)
