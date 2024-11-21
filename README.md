@@ -14,6 +14,10 @@ https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
 - 🚀 Semi-automatic publishing that creates a PR to the Typst preview package repository
 - (TODO) Prompt for PR fulfillment
 - (TODO) Automatic publishing
+- (TODO) Task runner
+- (TODO) Thumbnail compressing
+- (TODO) Thumbnail generating
+- (TODO) Linting / Type Checking
 
 ## Installation
 
