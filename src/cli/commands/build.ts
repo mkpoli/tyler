@@ -13,7 +13,11 @@ import {
 	readTypstToml,
 	type TypstToml,
 } from "@/build/package";
-import { cloneOrCleanRepo, TYPST_PACKAGES_REPO_URL } from "@/build/publish";
+import {
+	cloneOrCleanRepo,
+	interactivePullRequest,
+	TYPST_PACKAGES_REPO_URL,
+} from "@/build/publish";
 import { bumpVersion, interactivelyBumpVersion } from "@/cli/bump";
 import type { Command } from "@/cli/commands/types";
 import { type Config, updateOptionFromConfig } from "@/cli/config";
@@ -502,6 +506,16 @@ export default {
 				console.info(`[Tyler] Ran ${chalk.gray(commitCommand)}`);
 			}
 
+			// - Interactive PR fulfillment
+			const prBodyFileName = await interactivePullRequest(
+				gitRepoDir,
+				builtPackageName,
+				builtPackageVersion,
+				!samePackageName,
+				!!typstToml.template,
+				options.dryRun ?? false,
+			);
+
 			// - Show instructions on how to publish the package
 			if (options.publish) {
 				// -- Check if gh is installed
@@ -531,7 +545,7 @@ export default {
 					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("repo set-default")} ${chalk.gray(TYPST_PACKAGES_REPO_URL)}`,
 				);
 				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray('".github/pull_request_template.md"')} --draft`,
+					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray(`"${prBodyFileName}"`)} --draft`,
 				);
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
@@ -539,7 +553,11 @@ export default {
 				console.info(
 					`Then go to your draft pull request on GitHub (following the link similar to ${chalk.gray(
 						"https://github.com/typst/packages/pull/<number>",
-					)} from the output of the command above) and fill in the details to wait for the package to be approved`,
+					)} from the output of the command above) and ${
+						prBodyFileName.endsWith("pull_request_template.md")
+							? "fill in the details"
+							: "verify the details"
+					} to wait for the package to be approved`,
 				);
 			}
 		}

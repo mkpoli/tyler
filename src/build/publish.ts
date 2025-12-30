@@ -185,3 +185,151 @@ export async function cloneOrCleanRepo(
 
 	return gitRepoDir;
 }
+
+export async function interactivePullRequest(
+	gitRepoDir: string,
+	builtPackageName: string,
+	builtPackageVersion: string,
+	isNewPackage: boolean,
+	isTemplate: boolean,
+	dryRun: boolean,
+): Promise<string> {
+	console.info(
+		`[Tyler] Interactive PR for ${chalk.cyan(builtPackageName)}:${chalk.cyan(
+			builtPackageVersion,
+		)}`,
+	);
+	const { action }: { action: "now" | "later" } = await inquirer.prompt([
+		{
+			type: "list",
+			name: "action",
+			message: "How do you want to provide the PR details?",
+			choices: [
+				{
+					name: "Fill interactively now",
+					value: "now",
+				},
+				{
+					name: "Fill on GitHub later",
+					value: "later",
+				},
+			],
+		},
+	]);
+
+	if (action === "later") {
+		return ".github/pull_request_template.md";
+	}
+
+	console.info("[Tyler] Please fill in the details for the pull request:");
+
+	const { description }: { description: string } = await inquirer.prompt([
+		{
+			type: "input",
+			name: "description",
+			message: "Description (what the package does and why it is useful):",
+		},
+	]);
+
+	const { checklist }: { checklist: string[] } = await inquirer.prompt([
+		{
+			type: "checkbox",
+			name: "checklist",
+			message: "Checklist (Space to select, Enter to confirm):",
+			choices: [
+				{
+					name: "Selected a name that isn't the most obvious or canonical name for what the package does",
+					value: "name",
+					checked: true,
+				},
+				{
+					name: "Added a typst.toml file with all required keys",
+					value: "toml",
+					checked: true,
+				},
+				{
+					name: "Added a README.md with documentation for my package",
+					value: "readme",
+					checked: true,
+				},
+				{
+					name: "Chosen a license and added a LICENSE file or linked one in my README.md",
+					value: "license",
+					checked: true,
+				},
+				{
+					name: "Tested my package locally on my system and it worked",
+					value: "test",
+					checked: true,
+				},
+				{
+					name: "Excluded PDFs or README images, if any, but not the LICENSE",
+					value: "exclude",
+					checked: true,
+				},
+				...(isTemplate
+					? [
+							{
+								name: "Ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.",
+								value: "template_license",
+								checked: true,
+							},
+						]
+					: []),
+			],
+		},
+	]);
+
+	const prBody = `<!--
+Thanks for submitting a package! Please read and follow the submission guidelines detailed in the repository's README and check the boxes below. Please name your PR as \`name:version\` of the submitted package.
+
+If you want to make a PR for something other than a package submission, just delete all this and make a plain PR.
+-->
+
+I am submitting
+- [${isNewPackage ? "x" : " "}] a new package
+- [${!isNewPackage ? "x" : " "}] an update for a package
+
+<!--
+Please add a brief description of your package below and explain why you think it is useful to others. If this is an update, please briefly say what changed.
+-->
+
+${description}
+
+<!--
+These things need to be checked for a new submission to be merged. If you're just submitting an update, you can delete the following section.
+-->
+
+I have read and followed the submission guidelines and, in particular, I
+- [${checklist.includes("name") ? "x" : " "}] selected [a name](https://github.com/typst/packages/blob/main/docs/manifest.md#naming-rules) that isn't the most obvious or canonical name for what the package does
+- [${checklist.includes("toml") ? "x" : " "}] added a [\`typst.toml\`](https://github.com/typst/packages/blob/main/docs/manifest.md#package-metadata) file with all required keys
+- [${checklist.includes("readme") ? "x" : " "}] added a [\`README.md\`](https://github.com/typst/packages/blob/main/docs/documentation.md) with documentation for my package
+- [${checklist.includes("license") ? "x" : " "}] have chosen [a license](https://github.com/typst/packages/blob/main/docs/licensing.md) and added a \`LICENSE\` file or linked one in my \`README.md\`
+- [${checklist.includes("test") ? "x" : " "}] tested my package locally on my system and it worked
+- [${checklist.includes("exclude") ? "x" : " "}] [\`exclude\`d](https://github.com/typst/packages/blob/main/docs/tips.md#what-to-commit-what-to-exclude) PDFs or README images, if any, but not the LICENSE
+
+<!--
+The following box only needs to be checked for **template** submissions. If you're submitting a package that isn't a template, you can delete the following section. See the guidelines section about licenses in the README for more details.
+-->
+${
+	isTemplate
+		? `- [${checklist.includes("template_license") ? "x" : " "}] ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.`
+		: ""
+}
+`;
+
+	const prBodyFileName = "tyler-pr-body.md";
+	const prBodyPath = path.join(gitRepoDir, prBodyFileName);
+
+	if (dryRun) {
+		console.info(
+			`[Tyler] ${chalk.gray("(dry-run)")} Would write PR body to ${chalk.gray(prBodyPath)}`,
+		);
+		console.info(`[Tyler] ${chalk.gray("(dry-run)")} PR Body:\n${prBody}`);
+	} else {
+		await fs.writeFile(prBodyPath, prBody);
+		console.info(`[Tyler] Written PR body to ${chalk.gray(prBodyPath)}`);
+	}
+
+	return prBodyFileName;
+}
