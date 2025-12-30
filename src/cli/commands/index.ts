@@ -1,5 +1,6 @@
 import build from "./build";
 import check from "./check";
+import env from "./env";
 import type { Command } from "./types";
 
 const help = {
@@ -37,6 +38,7 @@ const root: Command = {
 const commands = {
 	build,
 	check,
+	env
 };
 
 const injected = Object.fromEntries(
