@@ -28,7 +28,7 @@ import {
 	getWorkingDirectory,
 } from "@/utils/file";
 import { stringifyToml } from "@/utils/manifest";
-import { execAndRedirect } from "@/utils/process";
+import { execAndGetOutput, execAndRedirect } from "@/utils/process";
 import check from "./check";
 
 export default {
@@ -433,6 +433,7 @@ export default {
 				typstTomlOutWithoutToolTylerWithBumpedVersion.package.name;
 			const builtPackageVersion =
 				typstTomlOutWithoutToolTylerWithBumpedVersion.package.version;
+			const targetBranchName = `${builtPackageName}-${builtPackageVersion}`;
 
 			// - Make a temporary directory
 			const tempDirPath = path.join(os.tmpdir(), "tyler-publish");
@@ -507,14 +508,36 @@ export default {
 			}
 
 			// - Interactive PR fulfillment
-			const prBodyFileName = await interactivePullRequest(
-				gitRepoDir,
-				builtPackageName,
-				builtPackageVersion,
-				!samePackageName,
-				!!typstToml.template,
-				options.dryRun ?? false,
-			);
+			// -- Check if a PR already exists
+			let existingPrUrl: string | undefined;
+			try {
+				const prListJson = await execAndGetOutput(
+					`gh pr list --head ${targetBranchName} --json url --repo ${TYPST_PACKAGES_REPO_URL}`,
+				);
+				const prList = JSON.parse(prListJson);
+				if (prList.length > 0) {
+					existingPrUrl = prList[0].url;
+					console.info(
+						`[Tyler] Found existing PR for ${chalk.cyan(targetBranchName)}: ${chalk.cyan(
+							existingPrUrl,
+						)}`,
+					);
+				}
+			} catch {
+				// Ignore error
+			}
+
+			let prBodyFileName = ".github/pull_request_template.md";
+			if (!existingPrUrl) {
+				prBodyFileName = await interactivePullRequest(
+					gitRepoDir,
+					builtPackageName,
+					builtPackageVersion,
+					!samePackageName,
+					!!typstToml.template,
+					options.dryRun ?? false,
+				);
+			}
 
 			// - Show instructions on how to publish the package
 			if (options.publish) {

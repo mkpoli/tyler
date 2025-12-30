@@ -43,3 +43,26 @@ export async function isCommandInstalled(command: string): Promise<boolean> {
 		return false;
 	}
 }
+
+export async function execAndGetOutput(command: string): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const [cmd, ...args] = command.split(" ");
+		const child = spawn(cmd, args, {
+			stdio: ["ignore", "pipe", "ignore"],
+		});
+		let output = "";
+		child.stdout.on("data", (data) => {
+			output += data.toString();
+		});
+		child.on("error", (error) => {
+			reject(error);
+		});
+		child.on("exit", (code) => {
+			if (code === 0) {
+				resolve(output);
+			} else {
+				reject(new Error(`Command ${command} failed with code ${code}`));
+			}
+		});
+	});
+}
