@@ -36,6 +36,7 @@ export async function main(): Promise<void> {
 	if (options.help) {
 		help(command);
 	} else {
+		console.info(`[Tyler] v${version}`);
 		const options = cla(command.options, {
 			argv,
 			camelCase: true,
