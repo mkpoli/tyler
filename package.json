@@ -6,6 +6,10 @@
 		"url": "https://mkpo.li/",
 		"email": "mkpoli@mkpo.li"
 	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mkpoli/tyler.git"
+	},
 	"main": "./dist/index.js",
 	"module": "index.ts",
 	"devDependencies": {
