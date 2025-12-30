@@ -267,6 +267,19 @@ export default {
 				...typstTomlOutWithoutToolTylerWithBumpedVersion,
 				tool: undefined,
 			};
+
+			// Adjust entrypoint if it is inside the source directory
+			const absoluteEntrypoint = path.resolve(workingDirectory, entrypoint);
+			const relativeEntrypointToSource = path.relative(
+				sourceDir,
+				absoluteEntrypoint,
+			);
+			if (
+				!relativeEntrypointToSource.startsWith("..") &&
+				!path.isAbsolute(relativeEntrypointToSource)
+			) {
+				outputTypstTomlData.package.entrypoint = relativeEntrypointToSource;
+			}
 			await fs.writeFile(
 				distTypstTomlPath,
 				await stringifyToml(outputTypstTomlData),
