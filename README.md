@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
 - 🔍 Check if the package manifest (`typst.toml`) is valid before publishing
 - 📦 Package the library or package into `typst/packages` ready for publishing
 - 🚀 Semi-automatic publishing that creates a PR to the Typst preview package repository
-- (TODO) Prompt for PR fulfillment
+- ℹ️ Display local environment information (Typst executable and package directory)
 - (TODO) Automatic publishing
 - (TODO) Task runner
 - (TODO) Thumbnail compressing
@@ -89,6 +89,14 @@ error: 1143 bytes of body are still expected
 fetch-pack: unexpected disconnect while reading sideband packet
 fatal: early EOF
 fatal: fetch-pack: invalid index-pack output
+```
+
+#### Environment
+
+Display the local package directory and the Typst executable path:
+
+```
+tyler env
 ```
 
 ### Configuration
