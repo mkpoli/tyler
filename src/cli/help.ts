@@ -1,14 +1,14 @@
+import chalk from "chalk";
+import clu from "command-line-usage";
 import commands from "@/cli/commands";
 import type { Command } from "@/cli/commands/types";
 import { version } from "@/utils/version";
-import chalk from "chalk";
-import clu from "command-line-usage";
 
 const LOGO = `
         .               oooo                     
       .o8               \`888                     
     .o888oo oooo    ooo  888   .ooooo.v oooo d8b 
-      888    \`88.  .8'   888  d88' \`88b \`888\"\"8P 
+      888    \`88.  .8'   888  d88' \`88b \`888""8P 
       888     \`88..8'    888  888ooo888  888     
       888 .    \`888'     888  888    .o  888     
       "888"     .8'     o888o \`Y8bod8P' d888b    

@@ -38,7 +38,7 @@ const root: Command = {
 const commands = {
 	build,
 	check,
-	env
+	env,
 };
 
 const injected = Object.fromEntries(

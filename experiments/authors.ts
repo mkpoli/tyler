@@ -5,7 +5,7 @@ const versionIndex = await getTypstIndexPackageMetadata();
 for (const pkg of versionIndex) {
 	for (const author of pkg.authors ?? []) {
 		if (
-			!/^[^<]*(?: <(?:[a-zA-Z0-9_\-\.]*)?@[^<>]+>|<https?:\/\/[^<>]+>)?$/.test(
+			!/^[^<]*(?: <(?:[a-zA-Z0-9_\-.]*)?@[^<>]+>|<https?:\/\/[^<>]+>)?$/.test(
 				author,
 			)
 		) {

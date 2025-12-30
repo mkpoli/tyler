@@ -39,7 +39,7 @@ export default {
 				}
 			}
 		} catch (error) {
-			console.info(`  ${chalk.red("Error checking typst")}`);
+			console.info(`  ${chalk.red("Error checking typst: ")}${error}`);
 		}
 		console.info("");
 
