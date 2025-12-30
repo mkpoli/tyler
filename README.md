@@ -12,6 +12,7 @@ https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
 - 🔍 Check if the package manifest (`typst.toml`) is valid before publishing
 - 📦 Package the library or package into `typst/packages` ready for publishing
 - 🚀 Semi-automatic publishing that creates a PR to the Typst preview package repository
+- 📝 Prompt for PR fulfillment
 - ℹ️ Display local environment information (Typst executable and package directory)
 - (TODO) Automatic publishing
 - (TODO) Task runner
