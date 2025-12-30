@@ -2,11 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import chalk from "chalk";
-
+import inquirer from "inquirer";
 import { fileExists } from "@/utils/file";
 import { isValidGitRepository } from "@/utils/git";
 import { exec, execAndRedirect, isCommandInstalled } from "@/utils/process";
-import inquirer from "inquirer";
 
 export const TYPST_PACKAGES_REPO_URL = "https://github.com/typst/packages.git";
 export async function cloneOrCleanRepo(

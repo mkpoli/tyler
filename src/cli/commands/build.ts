@@ -9,10 +9,11 @@ import semver from "semver";
 import tree from "tree-node-cli";
 
 import {
-	type TypstToml,
 	getTypstIndexPackageMetadata,
 	readTypstToml,
+	type TypstToml,
 } from "@/build/package";
+import { cloneOrCleanRepo, TYPST_PACKAGES_REPO_URL } from "@/build/publish";
 import { bumpVersion, interactivelyBumpVersion } from "@/cli/bump";
 import type { Command } from "@/cli/commands/types";
 import { type Config, updateOptionFromConfig } from "@/cli/config";
@@ -22,10 +23,8 @@ import {
 	getDataDirectory,
 	getWorkingDirectory,
 } from "@/utils/file";
-import { execAndRedirect } from "@/utils/process";
-
-import { TYPST_PACKAGES_REPO_URL, cloneOrCleanRepo } from "@/build/publish";
 import { stringifyToml } from "@/utils/manifest";
+import { execAndRedirect } from "@/utils/process";
 import check from "./check";
 
 export default {
@@ -510,7 +509,7 @@ export default {
 				try {
 					await execAndRedirect("gh --version");
 					ghInstalled = true;
-				} catch (error) {
+				} catch {
 					ghInstalled = false;
 				}
 

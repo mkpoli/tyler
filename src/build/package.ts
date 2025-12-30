@@ -58,7 +58,7 @@ export async function readTypstToml(path: string): Promise<TypstToml> {
 		const text = await fs.readFile(path, "utf-8");
 		return toml.parse(text) as TypstToml;
 	} catch (error) {
-		throw new Error("[Tyler] `typst.toml` is invalid");
+		throw new Error(`[Tyler] \`${path}\` is invalid: ${error}`);
 	}
 }
 

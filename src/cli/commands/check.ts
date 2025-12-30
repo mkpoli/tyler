@@ -1,33 +1,23 @@
 // Check if thumbnail.png exists
 
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 
 import chalk from "chalk";
 import imageSize from "image-size";
 import imageType from "image-type";
-import { minimatch } from "minimatch";
 import semver from "semver";
-import * as toml from "smol-toml";
 import spdxExpressionValidate from "spdx-expression-validate";
 import validUrl from "valid-url";
 
 import {
-	type TypstToml,
 	getTypstIndexPackageMetadata,
 	readTypstToml,
+	type TypstToml,
 } from "@/build/package";
-import { bumpVersion, interactivelyBumpVersion } from "@/cli/bump";
 import type { Command } from "@/cli/commands/types";
 import { type Config, updateOptionFromConfig } from "@/cli/config";
-import {
-	clearDirectoryWithoutDeletingIt,
-	fileExists,
-	getDataDirectory,
-	getWorkingDirectory,
-} from "@/utils/file";
-import { execAndRedirect } from "@/utils/process";
+import { fileExists, getWorkingDirectory } from "@/utils/file";
 
 export default {
 	name: "check",
@@ -147,13 +137,13 @@ export default {
 			return;
 		}
 
-		if (!/^[a-z0-9\-]+$/.test(typstToml.package.name)) {
+		if (!/^[a-z0-9-]+$/.test(typstToml.package.name)) {
 			console.info(
 				`${chalk.red("[Tyler]")} The package name ${chalk.red(
 					typstToml.package.name,
 				)} is invalid, it must only contain lowercase letters, numbers, and hyphens, however it contains: ${typstToml.package.name
 					.split("")
-					.filter((char) => !/^[a-z0-9\-]+$/.test(char))
+					.filter((char) => !/^[a-z0-9-]+$/.test(char))
 					.map((char) => chalk.red(char))
 					.join(", ")}`,
 			);
@@ -310,7 +300,7 @@ export default {
 			}
 
 			if (
-				!/^[^<]*(?: <(?:[a-zA-Z0-9_\-\.]*)?@[^<>]+>|<https?:\/\/[^<>]+>)?$/.test(
+				!/^[^<]*(?: <(?:[a-zA-Z0-9_\-.]*)?@[^<>]+>|<https?:\/\/[^<>]+>)?$/.test(
 					author,
 				)
 			) {
@@ -341,7 +331,7 @@ export default {
 
 		try {
 			isValidLicense = spdxExpressionValidate(typstToml.package.license);
-		} catch (error) {
+		} catch {
 			isValidLicense = false;
 		}
 
