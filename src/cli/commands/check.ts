@@ -4,9 +4,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import chalk from "chalk";
-import { minimatch } from "minimatch";
 import imageSize from "image-size";
 import imageType from "image-type";
+import { minimatch } from "minimatch";
 import semver from "semver";
 import spdxExpressionValidate from "spdx-expression-validate";
 import validUrl from "valid-url";

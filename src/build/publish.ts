@@ -8,11 +8,25 @@ import { isValidGitRepository } from "@/utils/git";
 import { exec, execAndRedirect, isCommandInstalled } from "@/utils/process";
 
 export const TYPST_PACKAGES_REPO_URL = "https://github.com/typst/packages.git";
+export interface ExistingPr {
+	url: string;
+	number: number;
+	headRefName: string;
+	headRepository: {
+		url: string;
+		name: string;
+	};
+	headRepositoryOwner: {
+		login: string;
+	};
+}
+
 export async function cloneOrCleanRepo(
 	dir: string,
 	dryRun: boolean,
 	builtPackageName: string,
 	builtPackageVersion: string,
+	existingPr?: ExistingPr,
 ): Promise<string> {
 	if (!(await isCommandInstalled("git"))) {
 		throw new Error("[Tyler] Git is not installed, cannot proceed");
@@ -153,34 +167,107 @@ export async function cloneOrCleanRepo(
 		}
 		// #endregion
 
-		// #region Delete branch if it exists
-		const targetBranchName = `${builtPackageName}-${builtPackageVersion}`;
-		const deleteBranchCommand = `git -C ${gitRepoDir} branch -D ${targetBranchName}`;
-		if (dryRun) {
-			console.info(
-				`[Tyler] ${chalk.gray("(dry-run)")} Would delete branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(deleteBranchCommand)}`,
-			);
-		} else {
-			await exec(deleteBranchCommand);
-			console.info(
-				`[Tyler] Deleted branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(deleteBranchCommand)}`,
-			);
-		}
-		// #endregion
+		if (existingPr) {
+			// #region Setup Existing PR
+			if (!existingPr.headRepository || !existingPr.headRepositoryOwner) {
+				console.warn(
+					`[Tyler] ${chalk.red("Error:")} Existing PR object is missing headRepository or headRepositoryOwner information.`,
+				);
+				console.warn(
+					`[Tyler] Existing PR object: ${JSON.stringify(existingPr, null, 2)}`,
+				);
+				throw new Error(
+					`[Tyler] Existing PR object is missing headRepository or headRepositoryOwner information.`,
+				);
+			}
 
-		// #region Create a new branch from origin/main
-		const createBranchCommand = `git -C ${gitRepoDir} checkout -b ${targetBranchName} HEAD`;
-		if (dryRun) {
-			console.info(
-				`[Tyler] ${chalk.gray("(dry-run)")} Would create a new branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(createBranchCommand)}`,
-			);
+			const remoteName = existingPr.headRepositoryOwner.login;
+			let remoteUrl = existingPr.headRepository.url;
+			if (!remoteUrl) {
+				remoteUrl = `https://github.com/${existingPr.headRepositoryOwner.login}/${existingPr.headRepository.name}.git`;
+			}
+			const branchName = existingPr.headRefName;
+
+			// Add remote
+			const addRemoteCommand = `git -C ${gitRepoDir} remote add ${remoteName} ${remoteUrl}`;
+			const setRemoteCommand = `git -C ${gitRepoDir} remote set-url ${remoteName} ${remoteUrl}`;
+
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would add/set remote ${chalk.gray(remoteName)} to ${chalk.gray(remoteUrl)}`,
+				);
+			} else {
+				try {
+					await execAndRedirect(
+						`git -C ${gitRepoDir} remote get-url ${remoteName}`,
+					);
+					await execAndRedirect(setRemoteCommand);
+				} catch {
+					await execAndRedirect(addRemoteCommand);
+				}
+				console.info(
+					`[Tyler] Set remote ${chalk.gray(remoteName)} to ${chalk.gray(remoteUrl)}`,
+				);
+			}
+
+			// Fetch branch
+			// Fetch remote
+			const fetchRemoteCommand = `git -C ${gitRepoDir} fetch ${remoteName}`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would fetch remote ${chalk.gray(remoteName)}`,
+				);
+			} else {
+				await execAndRedirect(fetchRemoteCommand);
+				console.info(`[Tyler] Fetched remote ${chalk.gray(remoteName)}`);
+			}
+
+			// Checkout branch from remote
+			const checkoutBranchCommand = `git -C ${gitRepoDir} checkout -B ${branchName} ${remoteName}/${branchName}`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would checkout to ${chalk.gray(branchName)} tracking ${chalk.gray(`${remoteName}/${branchName}`)}`,
+				);
+			} else {
+				await execAndRedirect(checkoutBranchCommand);
+				console.info(`[Tyler] Checked out to ${chalk.gray(branchName)}`);
+			}
+
+			// #endregion
 		} else {
-			await exec(createBranchCommand);
-			console.info(
-				`[Tyler] Created a new branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(createBranchCommand)}`,
-			);
+			// #region Delete branch if it exists
+			const targetBranchName = `${builtPackageName}-${builtPackageVersion}`;
+			const deleteBranchCommand = `git -C ${gitRepoDir} branch -D ${targetBranchName}`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would delete branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(deleteBranchCommand)}`,
+				);
+			} else {
+				try {
+					await exec(deleteBranchCommand);
+					console.info(
+						`[Tyler] Deleted branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(deleteBranchCommand)}`,
+					);
+				} catch {
+					// Ignore error
+				}
+			}
+			// #endregion
+
+			// #region Create a new branch from origin/main
+			const createBranchCommand = `git -C ${gitRepoDir} checkout -b ${targetBranchName} HEAD`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would create a new branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(createBranchCommand)}`,
+				);
+			} else {
+				await exec(createBranchCommand);
+				console.info(
+					`[Tyler] Created a new branch ${chalk.gray(targetBranchName)} in ${chalk.gray(gitRepoDir)} by ${chalk.gray(createBranchCommand)}`,
+				);
+			}
+			// #endregion
 		}
-		// #endregion
 	}
 
 	return gitRepoDir;

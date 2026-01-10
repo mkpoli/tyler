@@ -3,8 +3,8 @@ import commandExists from "command-exists";
 
 export async function execAndRedirect(command: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const [cmd, ...args] = command.split(" ");
-		const child = spawn(cmd, args, {
+		const child = spawn(command, {
+			shell: true,
 			stdio: "inherit",
 		});
 		// child.stdout?.pipe(process.stdout);
@@ -14,23 +14,31 @@ export async function execAndRedirect(command: string): Promise<void> {
 		child.on("error", (error) => {
 			reject(error);
 		});
-		child.on("exit", () => {
-			resolve();
+		child.on("exit", (code) => {
+			if (code === 0) {
+				resolve();
+			} else {
+				reject(new Error(`Command ${command} failed with code ${code}`));
+			}
 		});
 	});
 }
 
 export async function exec(command: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const [cmd, ...args] = command.split(" ");
-		const child = spawn(cmd, args, {
+		const child = spawn(command, {
+			shell: true,
 			stdio: "ignore",
 		});
 		child.on("error", (error) => {
 			reject(error);
 		});
-		child.on("exit", () => {
-			resolve();
+		child.on("exit", (code) => {
+			if (code === 0) {
+				resolve();
+			} else {
+				reject(new Error(`Command ${command} failed with code ${code}`));
+			}
 		});
 	});
 }
@@ -46,8 +54,8 @@ export async function isCommandInstalled(command: string): Promise<boolean> {
 
 export async function execAndGetOutput(command: string): Promise<string> {
 	return new Promise((resolve, reject) => {
-		const [cmd, ...args] = command.split(" ");
-		const child = spawn(cmd, args, {
+		const child = spawn(command, {
+			shell: true,
 			stdio: ["ignore", "pipe", "ignore"],
 		});
 		let output = "";
