@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import chalk from "chalk";
+import { minimatch } from "minimatch";
 import imageSize from "image-size";
 import imageType from "image-type";
 import semver from "semver";
@@ -554,7 +555,20 @@ export default {
 			}
 
 			let found = false;
+			const allFiles = await fs.readdir(workingDirectory, { recursive: true });
+			const globChars = ["*", "?", "[", "]", "{", "}"];
 			for (const exclude of typstToml.package.exclude) {
+				if (globChars.some((char) => exclude.includes(char))) {
+					const hasMatch = allFiles.some((file) => minimatch(file, exclude));
+					if (!hasMatch) {
+						console.info(
+							`${chalk.red("[Tyler]")} The exclude pattern ${chalk.red(exclude)} does not match any files`,
+						);
+						found = true;
+					}
+					continue;
+				}
+
 				if (!(await fileExists(path.resolve(workingDirectory, exclude)))) {
 					console.info(
 						`${chalk.red("[Tyler]")} The file ${chalk.red(exclude)} does not exist`,
