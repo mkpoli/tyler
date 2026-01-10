@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 import chalk from "chalk";
+import inquirer from "inquirer";
 import { minimatch } from "minimatch";
 import semver from "semver";
 
@@ -15,6 +16,7 @@ import {
 } from "@/build/package";
 import {
 	cloneOrCleanRepo,
+	type ExistingPr,
 	interactivePullRequest,
 	TYPST_PACKAGES_REPO_URL,
 } from "@/build/publish";
@@ -461,12 +463,46 @@ export default {
 				);
 			}
 
+			// -- Check if a PR already exists
+			let existingPrUrl: string | undefined;
+			let existingPr: ExistingPr | undefined;
+			try {
+				const prListJson = await execAndGetOutput(
+					`gh pr list --search "${builtPackageName}:${builtPackageVersion} in:title" --json url,number,headRefName,headRepository,headRepositoryOwner --repo ${TYPST_PACKAGES_REPO_URL}`,
+				);
+				const prList = JSON.parse(prListJson) as ExistingPr[];
+				if (prList.length > 0) {
+					const pr = prList[0];
+					console.info(
+						`[Tyler] Found existing PR for ${chalk.cyan(targetBranchName)}: ${chalk.cyan(
+							pr.url,
+						)}`,
+					);
+
+					const { update }: { update: boolean } = await inquirer.prompt([
+						{
+							type: "confirm",
+							name: "update",
+							message: "Do you want to update this PR?",
+						},
+					]);
+
+					if (update) {
+						existingPrUrl = pr.url;
+						existingPr = pr;
+					}
+				}
+			} catch {
+				// Ignore error
+			}
+
 			// - Clone github:typst/packages or clean the repository
 			const gitRepoDir = await cloneOrCleanRepo(
 				tempDirPath,
 				options.dryRun ?? false,
 				builtPackageName,
 				builtPackageVersion,
+				existingPr,
 			);
 
 			// - Copy the built package to the cloned repository
@@ -521,24 +557,6 @@ export default {
 			}
 
 			// - Interactive PR fulfillment
-			// -- Check if a PR already exists
-			let existingPrUrl: string | undefined;
-			try {
-				const prListJson = await execAndGetOutput(
-					`gh pr list --head ${targetBranchName} --json url --repo ${TYPST_PACKAGES_REPO_URL}`,
-				);
-				const prList = JSON.parse(prListJson);
-				if (prList.length > 0) {
-					existingPrUrl = prList[0].url;
-					console.info(
-						`[Tyler] Found existing PR for ${chalk.cyan(targetBranchName)}: ${chalk.cyan(
-							existingPrUrl,
-						)}`,
-					);
-				}
-			} catch {
-				// Ignore error
-			}
 
 			let prBodyFileName = ".github/pull_request_template.md";
 			if (!existingPrUrl) {
@@ -577,24 +595,36 @@ export default {
 				console.info(
 					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray(gitRepoDir)}`,
 				);
-				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("repo set-default")} ${chalk.gray(TYPST_PACKAGES_REPO_URL)}`,
-				);
-				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray(`"${prBodyFileName}"`)} --draft`,
-				);
-				console.info(
-					`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
-				);
-				console.info(
-					`Then go to your draft pull request on GitHub (following the link similar to ${chalk.gray(
-						"https://github.com/typst/packages/pull/<number>",
-					)} from the output of the command above) and ${
-						prBodyFileName.endsWith("pull_request_template.md")
-							? "fill in the details"
-							: "verify the details"
-					} to wait for the package to be approved`,
-				);
+				if (existingPr?.headRepositoryOwner) {
+					console.info(
+						`  ${chalk.cyan("$")} ${chalk.bold("git")} ${chalk.green("push")} ${existingPr.headRepositoryOwner.login} ${existingPr.headRefName}`,
+					);
+					console.info(
+						`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
+					);
+					console.info(
+						`Then go to your pull request on GitHub (${chalk.gray(existingPr.url)}) and verify the changes.`,
+					);
+				} else {
+					console.info(
+						`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("repo set-default")} ${chalk.gray(TYPST_PACKAGES_REPO_URL)}`,
+					);
+					console.info(
+						`  ${chalk.cyan("$")} ${chalk.bold("gh")} ${chalk.green("pr create")} --title ${chalk.gray(`"${builtPackageName}:${builtPackageVersion}"`)} --body-file ${chalk.gray(`"${prBodyFileName}"`)} --draft`,
+					);
+					console.info(
+						`  ${chalk.cyan("$")} ${chalk.bold("cd")} ${chalk.gray("-")}`,
+					);
+					console.info(
+						`Then go to your draft pull request on GitHub (following the link similar to ${chalk.gray(
+							"https://github.com/typst/packages/pull/<number>",
+						)} from the output of the command above) and ${
+							prBodyFileName.endsWith("pull_request_template.md")
+								? "fill in the details"
+								: "verify the details"
+						} to wait for the package to be approved`,
+					);
+				}
 			}
 		}
 	},
