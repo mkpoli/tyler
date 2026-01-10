@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Interactive PR Workflow**: Added support for updating an existing Pull Request if it is detected.
+
+### Fixed
+- **Configuration**: Added validation for glob patterns in the `exclude` configuration to ensure they match at least one file.
+
 ## [0.6.0] - 2025-12-31
 
 ### Added
