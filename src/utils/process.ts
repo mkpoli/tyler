@@ -1,7 +1,9 @@
 import { spawn } from "node:child_process";
+import chalk from "chalk";
 import commandExists from "command-exists";
 
 export async function execAndRedirect(command: string): Promise<void> {
+	console.info(`[Tyler] Running ${chalk.gray(command)}`);
 	return new Promise((resolve, reject) => {
 		const child = spawn(command, {
 			shell: true,
@@ -25,6 +27,7 @@ export async function execAndRedirect(command: string): Promise<void> {
 }
 
 export async function exec(command: string): Promise<void> {
+	console.info(`[Tyler] Running ${chalk.gray(command)}`);
 	return new Promise((resolve, reject) => {
 		const child = spawn(command, {
 			shell: true,
@@ -53,6 +56,7 @@ export async function isCommandInstalled(command: string): Promise<boolean> {
 }
 
 export async function execAndGetOutput(command: string): Promise<string> {
+	console.info(`[Tyler] Running ${chalk.gray(command)}`);
 	return new Promise((resolve, reject) => {
 		const child = spawn(command, {
 			shell: true,
