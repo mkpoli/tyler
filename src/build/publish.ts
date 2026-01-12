@@ -52,6 +52,25 @@ export async function cloneOrCleanRepo(
 			}
 			// #endregion
 
+			// #region Initialize sparse-checkout
+			const sparseInitCommand = `git -C ${gitRepoDir} sparse-checkout init`;
+			const sparseSetCommand = `git -C ${gitRepoDir} sparse-checkout set packages/preview/${builtPackageName}`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would init sparse-checkout in ${chalk.gray(gitRepoDir)}`,
+				);
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would set sparse-checkout to ${chalk.gray(`packages/preview/${builtPackageName}`)}`,
+				);
+			} else {
+				await execAndRedirect(sparseInitCommand);
+				await execAndRedirect(sparseSetCommand);
+				console.info(
+					`[Tyler] Initialized sparse-checkout for ${chalk.gray(`packages/preview/${builtPackageName}`)}`,
+				);
+			}
+			// #endregion
+
 			// #region Checkout to origin/main
 			const checkoutCommand = `git -C ${gitRepoDir} checkout origin/main`;
 			if (dryRun) {
@@ -151,11 +170,11 @@ export async function cloneOrCleanRepo(
 
 	// If the directory does not exist (or was removed), clone the repository
 	if (!(await fileExists(gitRepoDir))) {
-		const cloneCommand = `git clone ${TYPST_PACKAGES_REPO_URL} ${gitRepoDir} --depth 1`;
+		const cloneCommand = `git clone ${TYPST_PACKAGES_REPO_URL} ${gitRepoDir} --depth 1 --filter=tree:0 --no-checkout`;
 
 		if (dryRun) {
 			console.info(
-				`[Tyler] ${chalk.gray("(dry-run)")} Would clone ${chalk.gray(TYPST_PACKAGES_REPO_URL)} into ${chalk.gray(gitRepoDir)}`,
+				`[Tyler] ${chalk.gray("(dry-run)")} Would clone ${chalk.gray(TYPST_PACKAGES_REPO_URL)} into ${chalk.gray(gitRepoDir)} with sparse checkout params`,
 			);
 		} else {
 			try {
@@ -163,12 +182,28 @@ export async function cloneOrCleanRepo(
 				console.info(
 					`[Tyler] Cloned ${chalk.gray(TYPST_PACKAGES_REPO_URL)} into ${chalk.gray(gitRepoDir)}`,
 				);
+
+				// Initialize sparse-checkout
+				await execAndRedirect(`git -C ${gitRepoDir} sparse-checkout init`);
+				await execAndRedirect(
+					`git -C ${gitRepoDir} sparse-checkout set packages/preview/${builtPackageName}`,
+				);
+				console.info(
+					`[Tyler] Initialized sparse-checkout for ${chalk.gray(`packages/preview/${builtPackageName}`)}`,
+				);
+
+				// Checkout main
+				await execAndRedirect(`git -C ${gitRepoDir} checkout main`);
+				console.info(
+					`[Tyler] Checked out to ${chalk.gray("main")} in ${chalk.gray(gitRepoDir)}`,
+				);
 			} catch (error) {
 				if (error instanceof Error) {
 					console.info(
 						`[Tyler] ${chalk.red("Error cloning repository:")} ${error.message}`,
 					);
 				}
+				throw error; // Re-throw to ensure we stop if clone fails
 			}
 		}
 	}
