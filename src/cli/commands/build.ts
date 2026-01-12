@@ -180,8 +180,9 @@ export default {
 		// #endregion
 
 		// #region Get bumped version
-		const bumpedVersion = options.bump
-			? bumpVersion(typstToml.package.version, options.bump)
+		const bumpArg = options.noBump ? "skip" : options.bump;
+		const bumpedVersion = bumpArg
+			? bumpVersion(typstToml.package.version, bumpArg)
 			: await interactivelyBumpVersion(typstToml.package.version);
 
 		if (bumpedVersion === typstToml.package.version) {
