@@ -686,11 +686,12 @@ export default {
 				return;
 			}
 
-			const thumbnailType = await imageType(
+			const thumbnailBytes = bufferToUint8Array(
 				await fs.readFile(
 					path.resolve(workingDirectory, typstToml.template.thumbnail),
 				),
 			);
+			const thumbnailType = await imageType(thumbnailBytes);
 
 			if (
 				!thumbnailType ||
@@ -704,9 +705,7 @@ export default {
 				return;
 			}
 
-			const thumbnailDimensions = imageSize(
-				path.resolve(workingDirectory, typstToml.template.thumbnail),
-			);
+			const thumbnailDimensions = imageSize(thumbnailBytes);
 			const MIN_THUMBNAIL_SIZE = 1080;
 			if (!thumbnailDimensions.width || !thumbnailDimensions.height) {
 				console.info(
@@ -769,3 +768,11 @@ export default {
 	install: boolean | undefined;
 	publish: boolean | undefined;
 }>;
+
+function bufferToUint8Array(buffer: Buffer): Uint8Array<ArrayBuffer> {
+	const arrayBuffer = buffer.buffer.slice(
+		buffer.byteOffset,
+		buffer.byteOffset + buffer.byteLength,
+	) as ArrayBuffer;
+	return new Uint8Array(arrayBuffer);
+}

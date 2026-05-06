@@ -10,6 +10,7 @@ https://github.com/user-attachments/assets/49bd7e94-8fd3-4ead-bede-2e58471d1a85
 - 📄 Compile relative entrypoint import (e.g. `../lib.typ`) to preview import (e.g. `@preview/somepkg:0.1.0`)
 - 🔄 Bump the version of the package interactively or with specified semver as CLI argument
 - 🔍 Check if the package manifest (`typst.toml`) is valid before publishing
+- 🧙 Initialize Typst library, template, or WebAssembly plugin starter projects
 - 📦 Package the library or package into `typst/packages` ready for publishing
 - 🚀 Semi-automatic publishing that creates a PR to the Typst preview package repository
 - 📝 Prompt for PR fulfillment
@@ -48,10 +49,31 @@ tyler build -i -p
 
 #### Check
 
-Check if the package manifest (`typst.toml`) is valid and required properties / files e   :
+Check if the package manifest (`typst.toml`) is valid and required properties / files exist:
 
 ```
 tyler check
+```
+
+#### Init / Create
+
+Initialize a package in the current directory:
+
+```
+tyler init
+```
+
+Create a package in a new folder with recommended defaults and no prompts:
+
+```
+tyler create my-package --default
+```
+
+Create a template starter or WebAssembly plugin scaffold:
+
+```
+tyler create my-template --type template
+tyler create my-plugin --plugin
 ```
 
 #### Build
