@@ -19,8 +19,9 @@ jobs:
           bun-version: latest
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
       - run: bun install
       - run: bun run build
       - name: Publish to NPM
