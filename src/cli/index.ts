@@ -5,6 +5,15 @@ import type { Command } from "@/cli/commands/types";
 import { commandsOnly, help } from "@/cli/help";
 import { version } from "@/utils/version";
 
+function isPromptCancellation(error: unknown): error is Error {
+	return (
+		error instanceof Error &&
+		(error.name === "ExitPromptError" ||
+			error.message.includes("force closed the prompt") ||
+			error.message.includes("SIGINT"))
+	);
+}
+
 export async function main(): Promise<void> {
 	const options = cla(commands.root.options, {
 		stopAtFirstUnknown: true,
@@ -44,6 +53,11 @@ export async function main(): Promise<void> {
 		try {
 			await command.run(options);
 		} catch (error) {
+			if (isPromptCancellation(error)) {
+				console.info("[Tyler] Cancelled by user");
+				process.exit(0);
+			}
+
 			console.error(error);
 			process.exit(1);
 		}
