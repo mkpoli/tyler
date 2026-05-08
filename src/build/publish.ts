@@ -52,6 +52,44 @@ export async function cloneOrCleanRepo(
 			}
 			// #endregion
 
+			// #region Reset origin url
+			const originExistsCommand = `git -C ${gitRepoDir} remote get-url origin`;
+			const setOriginCommand = `git -C ${gitRepoDir} remote set-url origin ${TYPST_PACKAGES_REPO_URL}`;
+			const addOriginCommand = `git -C ${gitRepoDir} remote add origin ${TYPST_PACKAGES_REPO_URL}`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would reset origin url in ${chalk.gray(gitRepoDir)}`,
+				);
+			} else {
+				try {
+					await execAndRedirect(originExistsCommand);
+					await execAndRedirect(setOriginCommand);
+					console.info(
+						`[Tyler] Reset origin url in ${chalk.gray(gitRepoDir)} by ${chalk.gray(setOriginCommand)}`,
+					);
+				} catch {
+					await execAndRedirect(addOriginCommand);
+					console.info(
+						`[Tyler] Added origin url in ${chalk.gray(gitRepoDir)} by ${chalk.gray(addOriginCommand)}`,
+					);
+				}
+			}
+			// #endregion
+
+			// #region Fetch the latest changes from origin
+			const fetchCommand = `git -C ${gitRepoDir} fetch origin`;
+			if (dryRun) {
+				console.info(
+					`[Tyler] ${chalk.gray("(dry-run)")} Would fetch latest changes from origin in ${chalk.gray(gitRepoDir)} by ${chalk.gray(fetchCommand)}`,
+				);
+			} else {
+				await execAndRedirect(fetchCommand);
+				console.info(
+					`[Tyler] Fetched latest changes from origin in ${chalk.gray(gitRepoDir)} by ${chalk.gray(fetchCommand)}`,
+				);
+			}
+			// #endregion
+
 			// #region Initialize sparse-checkout
 			const sparseInitCommand = `git -C ${gitRepoDir} sparse-checkout init`;
 			const sparseSetCommand = `git -C ${gitRepoDir} sparse-checkout set packages/preview/${builtPackageName}`;
@@ -78,34 +116,10 @@ export async function cloneOrCleanRepo(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would checkout to origin/main in ${chalk.gray(gitRepoDir)} by ${chalk.gray(checkoutCommand)}`,
 				);
 			} else {
-				await exec(checkoutCommand);
+				await execAndRedirect(checkoutCommand);
 				console.info(
 					`[Tyler] Checked out to origin/main in ${chalk.gray(gitRepoDir)} by ${chalk.gray(checkoutCommand)}`,
 				);
-			}
-			// #endregion
-
-			// #region Reset origin url
-			const originExistsCommand = `git -C ${gitRepoDir} remote get-url origin`;
-			const setOriginCommand = `git -C ${gitRepoDir} remote set-url origin ${TYPST_PACKAGES_REPO_URL}`;
-			const addOriginCommand = `git -C ${gitRepoDir} remote add origin ${TYPST_PACKAGES_REPO_URL}`;
-			if (dryRun) {
-				console.info(
-					`[Tyler] ${chalk.gray("(dry-run)")} Would reset origin url in ${chalk.gray(gitRepoDir)}`,
-				);
-			} else {
-				try {
-					await execAndRedirect(originExistsCommand);
-					await execAndRedirect(setOriginCommand);
-					console.info(
-						`[Tyler] Reset origin url in ${chalk.gray(gitRepoDir)} by ${chalk.gray(setOriginCommand)}`,
-					);
-				} catch {
-					await execAndRedirect(addOriginCommand);
-					console.info(
-						`[Tyler] Added origin url in ${chalk.gray(gitRepoDir)} by ${chalk.gray(addOriginCommand)}`,
-					);
-				}
 			}
 			// #endregion
 
@@ -119,20 +133,6 @@ export async function cloneOrCleanRepo(
 				await execAndRedirect(cleanCommand);
 				console.info(
 					`[Tyler] Cleaned up git working tree in ${chalk.gray(gitRepoDir)} by ${chalk.gray(cleanCommand)}`,
-				);
-			}
-			// #endregion
-
-			// #region Fetch the latest changes from origin
-			const fetchCommand = `git -C ${gitRepoDir} fetch origin`;
-			if (dryRun) {
-				console.info(
-					`[Tyler] ${chalk.gray("(dry-run)")} Would fetch latest changes from origin in ${chalk.gray(gitRepoDir)} by ${chalk.gray(fetchCommand)}`,
-				);
-			} else {
-				await execAndRedirect(fetchCommand);
-				console.info(
-					`[Tyler] Fetched latest changes from origin in ${chalk.gray(gitRepoDir)} by ${chalk.gray(fetchCommand)}`,
 				);
 			}
 			// #endregion
