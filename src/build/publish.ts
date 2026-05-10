@@ -398,54 +398,86 @@ export async function interactivePullRequest(
 		},
 	]);
 
-	const { checklist }: { checklist: string[] } = await inquirer.prompt([
-		{
-			type: "checkbox",
-			name: "checklist",
-			message: "Checklist (Space to select, Enter to confirm):",
-			choices: [
-				{
-					name: "Selected a name that isn't the most obvious or canonical name for what the package does",
-					value: "name",
-					checked: true,
-				},
-				{
-					name: "Added a typst.toml file with all required keys",
-					value: "toml",
-					checked: true,
-				},
-				{
-					name: "Added a README.md with documentation for my package",
-					value: "readme",
-					checked: true,
-				},
-				{
-					name: "Chosen a license and added a LICENSE file or linked one in my README.md",
-					value: "license",
-					checked: true,
-				},
-				{
-					name: "Tested my package locally on my system and it worked",
-					value: "test",
-					checked: true,
-				},
-				{
-					name: "Excluded PDFs or README images, if any, but not the LICENSE",
-					value: "exclude",
-					checked: true,
-				},
-				...(isTemplate
-					? [
+	// Updates skip the new-submission checklist entirely (the upstream PR
+	// template literally says "If you're just submitting an update, you can
+	// delete the following section"). Only prompt when it will be rendered.
+	const checklist: string[] = isNewPackage
+		? (
+				await inquirer.prompt([
+					{
+						type: "checkbox",
+						name: "checklist",
+						message: "Checklist (Space to select, Enter to confirm):",
+						choices: [
 							{
-								name: "Ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.",
-								value: "template_license",
+								name: "Selected a name that isn't the most obvious or canonical name for what the package does",
+								value: "name",
 								checked: true,
 							},
-						]
-					: []),
-			],
-		},
-	]);
+							{
+								name: "Added a typst.toml file with all required keys",
+								value: "toml",
+								checked: true,
+							},
+							{
+								name: "Added a README.md with documentation for my package",
+								value: "readme",
+								checked: true,
+							},
+							{
+								name: "Chosen a license and added a LICENSE file or linked one in my README.md",
+								value: "license",
+								checked: true,
+							},
+							{
+								name: "Tested my package locally on my system and it worked",
+								value: "test",
+								checked: true,
+							},
+							{
+								name: "Excluded PDFs or README images, if any, but not the LICENSE",
+								value: "exclude",
+								checked: true,
+							},
+							...(isTemplate
+								? [
+										{
+											name: "Ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.",
+											value: "template_license",
+											checked: true,
+										},
+									]
+								: []),
+						],
+					},
+				])
+			).checklist
+		: [];
+
+	// New-submission checklist: only included when isNewPackage. Includes the
+	// template-licensing item (and its HTML preamble) only when isTemplate.
+	const submissionChecklist = isNewPackage
+		? `<!--
+These things need to be checked for a new submission to be merged.
+-->
+
+I have read and followed the submission guidelines and, in particular, I
+- [${checklist.includes("name") ? "x" : " "}] selected [a name](https://github.com/typst/packages/blob/main/docs/manifest.md#naming-rules) that isn't the most obvious or canonical name for what the package does
+- [${checklist.includes("toml") ? "x" : " "}] added a [\`typst.toml\`](https://github.com/typst/packages/blob/main/docs/manifest.md#package-metadata) file with all required keys
+- [${checklist.includes("readme") ? "x" : " "}] added a [\`README.md\`](https://github.com/typst/packages/blob/main/docs/documentation.md) with documentation for my package
+- [${checklist.includes("license") ? "x" : " "}] have chosen [a license](https://github.com/typst/packages/blob/main/docs/licensing.md) and added a \`LICENSE\` file or linked one in my \`README.md\`
+- [${checklist.includes("test") ? "x" : " "}] tested my package locally on my system and it worked
+- [${checklist.includes("exclude") ? "x" : " "}] [\`exclude\`d](https://github.com/typst/packages/blob/main/docs/tips.md#what-to-commit-what-to-exclude) PDFs or README images, if any, but not the LICENSE${
+				isTemplate
+					? `
+
+<!--
+The following box only needs to be checked for **template** submissions. See the guidelines section about licenses in the README for more details.
+-->
+- [${checklist.includes("template_license") ? "x" : " "}] ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.`
+					: ""
+			}`
+		: "";
 
 	const prBody = `<!--
 Thanks for submitting a package! Please read and follow the submission guidelines detailed in the repository's README and check the boxes below. Please name your PR as \`name:version\` of the submitted package.
@@ -461,28 +493,7 @@ I am submitting
 Please add a brief description of your package below and explain why you think it is useful to others. If this is an update, please briefly say what changed.
 -->
 
-${description}
-
-<!--
-These things need to be checked for a new submission to be merged. If you're just submitting an update, you can delete the following section.
--->
-
-I have read and followed the submission guidelines and, in particular, I
-- [${checklist.includes("name") ? "x" : " "}] selected [a name](https://github.com/typst/packages/blob/main/docs/manifest.md#naming-rules) that isn't the most obvious or canonical name for what the package does
-- [${checklist.includes("toml") ? "x" : " "}] added a [\`typst.toml\`](https://github.com/typst/packages/blob/main/docs/manifest.md#package-metadata) file with all required keys
-- [${checklist.includes("readme") ? "x" : " "}] added a [\`README.md\`](https://github.com/typst/packages/blob/main/docs/documentation.md) with documentation for my package
-- [${checklist.includes("license") ? "x" : " "}] have chosen [a license](https://github.com/typst/packages/blob/main/docs/licensing.md) and added a \`LICENSE\` file or linked one in my \`README.md\`
-- [${checklist.includes("test") ? "x" : " "}] tested my package locally on my system and it worked
-- [${checklist.includes("exclude") ? "x" : " "}] [\`exclude\`d](https://github.com/typst/packages/blob/main/docs/tips.md#what-to-commit-what-to-exclude) PDFs or README images, if any, but not the LICENSE
-
-<!--
-The following box only needs to be checked for **template** submissions. If you're submitting a package that isn't a template, you can delete the following section. See the guidelines section about licenses in the README for more details.
--->
-${
-	isTemplate
-		? `- [${checklist.includes("template_license") ? "x" : " "}] ensured that my package is licensed such that users can use and distribute the contents of its template directory without restriction, after modifying them through normal use.`
-		: ""
-}
+${description}${submissionChecklist ? `\n\n${submissionChecklist}` : ""}
 `;
 
 	const prBodyFileName = "tyler-pr-body.md";
