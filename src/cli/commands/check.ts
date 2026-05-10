@@ -586,7 +586,7 @@ export default {
 					)}`,
 				);
 				console.info(
-					"[Tyler] These patterns will be skipped at build time alongside tool.tyler.ignore",
+					"[Tyler] These patterns will be kept in typst.toml for the Typst package archive",
 				);
 			}
 		}

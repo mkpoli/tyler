@@ -65,7 +65,7 @@ export function computeDefaultIgnores(
 	return [...new Set(defaults)];
 }
 
-/** Union of user `ignore`, manifest `package.exclude`, and computed defaults. */
+/** Union of ignore pattern lists while preserving first-seen order. */
 export function combineIgnorePatterns(
 	...lists: (readonly string[] | undefined)[]
 ): string[] {

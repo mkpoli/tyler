@@ -43,6 +43,47 @@ import { stringifyToml } from "@/utils/manifest";
 import { execAndGetOutput, execAndRedirect } from "@/utils/process";
 import check from "./check";
 
+function stripMarkdownLinkSuffix(target: string): string {
+	const hashIndex = target.indexOf("#");
+	const queryIndex = target.indexOf("?");
+	const suffixIndexes = [hashIndex, queryIndex].filter((index) => index >= 0);
+	if (suffixIndexes.length === 0) return target;
+	return target.slice(0, Math.min(...suffixIndexes));
+}
+
+function isLocalMarkdownTarget(target: string): boolean {
+	const trimmed = target.trim();
+	if (!trimmed || trimmed.startsWith("#")) return false;
+	if (trimmed.startsWith("/")) return false;
+	if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return false;
+	return true;
+}
+
+function extractReadmeAssetPaths(readme: string): string[] {
+	const targets: string[] = [];
+	const markdownLinkPattern = /!?\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+	const htmlSrcPattern = /\b(?:src|href)=["']([^"']+)["']/gi;
+
+	for (const pattern of [markdownLinkPattern, htmlSrcPattern]) {
+		for (const match of readme.matchAll(pattern)) {
+			const rawTarget = match[1];
+			if (!rawTarget || !isLocalMarkdownTarget(rawTarget)) continue;
+
+			const target = stripMarkdownLinkSuffix(rawTarget);
+			if (!target || !isLocalMarkdownTarget(target)) continue;
+
+			try {
+				const decoded = decodeURIComponent(target);
+				if (!targets.includes(decoded)) targets.push(decoded);
+			} catch {
+				if (!targets.includes(target)) targets.push(target);
+			}
+		}
+	}
+
+	return targets;
+}
+
 export default {
 	name: "build",
 	description: "Bump the version and build a Typst package",
@@ -259,16 +300,13 @@ export default {
 		// #endregion
 
 		// #region Combine ignore patterns
-		// Tyler's effective skip list is the union of:
-		//   - tool.tyler.ignore (CLI-overridable)
-		//   - package.exclude  (the official Typst manifest field)
-		//   - sensible defaults (.git, node_modules, OS/editor metadata, outdir if nested)
-		// This lets users adopt srcdir = "." for existing repos without enumerating
-		// every dev-only path themselves.
+		// Tyler's effective skip list only controls files copied from srcdir into
+		// outdir. `package.exclude` stays in typst.toml for the Typst registry
+		// archive, but README-linked documentation assets still need to be present
+		// in the registry submission.
 		const defaultIgnores = computeDefaultIgnores(sourceDir, outputDir);
 		const effectiveIgnores = combineIgnorePatterns(
 			updatedOptions.ignore,
-			typstToml.package.exclude,
 			defaultIgnores,
 		);
 		if (effectiveIgnores.length > 0) {
@@ -438,6 +476,57 @@ export default {
 					await fs.cp(sourceFilePath, outputFilePath, { recursive: true });
 					console.info(
 						`[Tyler] Copied ${chalk.green(path.relative(workingDirectory, sourceFilePath))} to ${chalk.yellow(path.relative(workingDirectory, outputFilePath))}`,
+					);
+				}
+			}
+		}
+		// #endregion
+
+		// #region Copy README-linked assets
+		const readmePath = path.resolve(workingDirectory, "README.md");
+		if (await fileExists(readmePath)) {
+			const readme = await fs.readFile(readmePath, "utf8");
+			for (const assetPath of extractReadmeAssetPaths(readme)) {
+				const sourceFilePath = path.resolve(workingDirectory, assetPath);
+				const relativeSourceFilePath = path.relative(
+					workingDirectory,
+					sourceFilePath,
+				);
+
+				if (
+					relativeSourceFilePath.startsWith("..") ||
+					path.isAbsolute(relativeSourceFilePath)
+				) {
+					console.warn(
+						`[Tyler] README.md links ${chalk.yellow(assetPath)}, which is outside the package root and cannot be copied`,
+					);
+					continue;
+				}
+
+				if (!(await fileExists(sourceFilePath))) {
+					console.warn(
+						`[Tyler] README.md links ${chalk.yellow(assetPath)}, but the file does not exist`,
+					);
+					continue;
+				}
+
+				const outputFilePath = path.resolve(outputDir, relativeSourceFilePath);
+				const relativeOutputFilePath = path.relative(
+					workingDirectory,
+					outputFilePath,
+				);
+
+				if (sourceFilePath === outputFilePath) continue;
+
+				if (options.dryRun) {
+					console.info(
+						`[Tyler] ${chalk.gray("(dry-run)")} Would copy README-linked asset ${chalk.green(relativeSourceFilePath)} to ${chalk.yellow(relativeOutputFilePath)}`,
+					);
+				} else {
+					await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
+					await fs.cp(sourceFilePath, outputFilePath, { recursive: true });
+					console.info(
+						`[Tyler] Copied README-linked asset ${chalk.green(relativeSourceFilePath)} to ${chalk.yellow(relativeOutputFilePath)}`,
 					);
 				}
 			}
