@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **README-linked assets in publish output**: `tyler build` now copies local files linked from `README.md` into the output directory, preserving paths. This supports Typst Universe documentation assets such as README images that should be committed to the registry but listed in `package.exclude` so they are left out of downloaded package archives.
+
+### Changed
+- **Separate Tyler ignores from Typst excludes**: `package.exclude` is now preserved for Typst's archive behavior instead of being treated as a Tyler build skip list. Use `tool.tyler.ignore` for files that Tyler should not copy into `dist/`.
+
 ## [0.10.2] - 2026-05-10
 
 ### Fixed
