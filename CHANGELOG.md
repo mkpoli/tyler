@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Interactive PR Workflow**: Added support for updating an existing Pull Request if it is detected.
+- **Differentiated `init` scaffolds**: `tyler init`/`tyler create` now generates distinct starter content for `--type library` vs `--type template`. Library scaffolds get a minimal `lib.typ` with an example exported function and `///` docs, instead of the previous `body`-wrapping stub. Template scaffolds get a real template function with named `title`/`author`/`body` arguments, `set` rules for document/page/text/par/heading, a centred title block, and `///` doc comments — and `template/main.typ` is updated to use the canonical `#show: name.with(...)` invocation.
 
 ### Fixed
 - **Configuration**: Added validation for glob patterns in the `exclude` configuration to ensure they match at least one file.
