@@ -4,7 +4,6 @@ import path from "node:path";
 
 import chalk from "chalk";
 import inquirer from "inquirer";
-import { minimatch } from "minimatch";
 import semver from "semver";
 
 import tree from "tree-node-cli";
@@ -29,6 +28,11 @@ import {
 	getDataDirectory,
 	getWorkingDirectory,
 } from "@/utils/file";
+import {
+	combineIgnorePatterns,
+	computeDefaultIgnores,
+	shouldIgnore,
+} from "@/utils/ignore";
 import { stringifyToml } from "@/utils/manifest";
 import { execAndGetOutput, execAndRedirect } from "@/utils/process";
 import check from "./check";
@@ -248,6 +252,28 @@ export default {
 		console.info(`[Tyler] Output directory will be  ${chalk.gray(outputDir)}`);
 		// #endregion
 
+		// #region Combine ignore patterns
+		// Tyler's effective skip list is the union of:
+		//   - tool.tyler.ignore (CLI-overridable)
+		//   - package.exclude  (the official Typst manifest field)
+		//   - sensible defaults (.git, node_modules, OS/editor metadata, outdir if nested)
+		// This lets users adopt srcdir = "." for existing repos without enumerating
+		// every dev-only path themselves.
+		const defaultIgnores = computeDefaultIgnores(sourceDir, outputDir);
+		const effectiveIgnores = combineIgnorePatterns(
+			updatedOptions.ignore,
+			typstToml.package.exclude,
+			defaultIgnores,
+		);
+		if (effectiveIgnores.length > 0) {
+			console.info(
+				`[Tyler] Skipping patterns: ${effectiveIgnores
+					.map((pattern) => chalk.gray(pattern))
+					.join(", ")}`,
+			);
+		}
+		// #endregion
+
 		// #region Get entrypoint
 		const entrypoint = typstToml.package.entrypoint ?? "lib.typ";
 		// #endregion
@@ -377,10 +403,8 @@ export default {
 		const allFiles = await fs.readdir(sourceDir, { recursive: true });
 
 		for (const file of allFiles) {
-			if (updatedOptions.ignore?.some((ignore) => minimatch(file, ignore))) {
-				console.info(
-					`[Tyler] Ignoring ${chalk.gray(file)} because it matches ${updatedOptions.ignore?.map((ignore) => chalk.gray(ignore)).join(", ")}`,
-				);
+			if (shouldIgnore(file, effectiveIgnores)) {
+				console.info(`[Tyler] Ignoring ${chalk.gray(file)}`);
 				continue;
 			}
 

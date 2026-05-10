@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-05-10
+### Added
+- **Honor `package.exclude` at build time**: The official Typst manifest `package.exclude` field is now applied during `tyler build` in addition to `tool.tyler.ignore`. Both lists are unioned, so projects can use whichever channel is appropriate (or both).
+- **Built-in defaults for non-`src` layouts**: When `srcdir` resolves to (or includes) the project root, Tyler now automatically skips `.git`, `node_modules`, `.DS_Store`, `.vscode`, `.idea`, `Thumbs.db`, and the configured `outdir`. This makes it possible to onboard existing projects with `srcdir = "."` without enumerating every dev-only path.
+- **Robust ignore matching**: A new `shouldIgnore` helper treats literal directory names (e.g. `node_modules`) as matching both the directory entry and all of its descendants, and matches dotfiles by default. `tyler check` uses the same matcher when validating `package.exclude` patterns.
+- **README "Onboarding an existing project" section**: Documents the no-restructure path with a worked `typst.toml` example.
 
 ### Added
 - **Interactive PR Workflow**: Added support for updating an existing Pull Request if it is detected.
