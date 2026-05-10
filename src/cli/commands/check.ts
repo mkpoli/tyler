@@ -6,7 +6,6 @@ import path from "node:path";
 import chalk from "chalk";
 import imageSize from "image-size";
 import imageType from "image-type";
-import { minimatch } from "minimatch";
 import semver from "semver";
 import spdxExpressionValidate from "spdx-expression-validate";
 import validUrl from "valid-url";
@@ -19,6 +18,7 @@ import {
 import type { Command } from "@/cli/commands/types";
 import { type Config, updateOptionFromConfig } from "@/cli/config";
 import { fileExists, getWorkingDirectory } from "@/utils/file";
+import { shouldIgnore } from "@/utils/ignore";
 
 export default {
 	name: "check",
@@ -559,7 +559,9 @@ export default {
 			const globChars = ["*", "?", "[", "]", "{", "}"];
 			for (const exclude of typstToml.package.exclude) {
 				if (globChars.some((char) => exclude.includes(char))) {
-					const hasMatch = allFiles.some((file) => minimatch(file, exclude));
+					const hasMatch = allFiles.some((file) =>
+						shouldIgnore(file, [exclude]),
+					);
 					if (!hasMatch) {
 						console.info(
 							`${chalk.red("[Tyler]")} The exclude pattern ${chalk.red(exclude)} does not match any files`,
@@ -582,6 +584,9 @@ export default {
 					`${chalk.greenBright("[Tyler]")} Package exclude is valid: ${chalk.yellow(
 						typstToml.package.exclude.join(", "),
 					)}`,
+				);
+				console.info(
+					"[Tyler] These patterns will be skipped at build time alongside tool.tyler.ignore",
 				);
 			}
 		}
