@@ -621,11 +621,61 @@ async function renderTypstToml(answers: InitAnswers): Promise<string> {
 }
 
 function renderLibraryEntrypoint(answers: InitAnswers): string {
+	const id = typstIdentifier(answers.name);
+
 	if (answers.plugin) {
-		return `// Replace this stub once your WebAssembly plugin is compiled.\n// See src/plugin.typ for setup notes and a wrapper example.\n#let ${typstIdentifier(answers.name)}(body) = body\n`;
+		return `// Replace this stub once your WebAssembly plugin is compiled.\n// See src/plugin.typ for setup notes and a wrapper example.\n#let ${id}(body) = body\n`;
 	}
 
-	return `#let ${typstIdentifier(answers.name)}(body) = {\n  set text(font: "Libertinus Serif")\n  body\n}\n`;
+	if (answers.type === "template") {
+		// Template starter: a proper template function with named arguments,
+		// `set` rules, and `///` doc comments — the canonical Typst pattern.
+		// See https://typst.app/docs/tutorial/making-a-template/
+		return [
+			`/// ${answers.description}`,
+			`///`,
+			`/// - title (str | content): Document title.`,
+			`/// - author (str | content): Author name.`,
+			`/// - body (content): Document body.`,
+			`#let ${id}(`,
+			`  title: none,`,
+			`  author: none,`,
+			`  body,`,
+			`) = {`,
+			`  set document(`,
+			`    title: if type(title) == str { title } else { "" },`,
+			`    author: if type(author) == str { author } else { "" },`,
+			`  )`,
+			`  set page(paper: "a4", margin: 1in)`,
+			`  set text(font: "Libertinus Serif", size: 11pt, lang: "en")`,
+			`  set par(justify: true, leading: 0.65em)`,
+			`  set heading(numbering: "1.1")`,
+			``,
+			`  // Title block`,
+			`  if title != none {`,
+			`    align(center, text(size: 17pt, weight: "bold", title))`,
+			`    if author != none {`,
+			`      v(0.6em)`,
+			`      align(center, text(size: 12pt, author))`,
+			`    }`,
+			`    v(1.2em)`,
+			`  }`,
+			``,
+			`  body`,
+			`}`,
+			``,
+		].join("\n");
+	}
+
+	// Library starter: minimal exports, no body wrapper. Library packages
+	// typically expose utility functions, not document templates.
+	return [
+		`/// ${answers.description}`,
+		``,
+		`/// Greet the world.`,
+		`#let hello() = "Hello, world!"`,
+		``,
+	].join("\n");
 }
 
 function renderPluginWrapper(): string {
@@ -633,7 +683,21 @@ function renderPluginWrapper(): string {
 }
 
 function renderTemplateEntrypoint(answers: InitAnswers): string {
-	return `#import "../lib.typ": ${typstIdentifier(answers.name)}\n\n#show: ${typstIdentifier(answers.name)}\n\n= ${titleCase(answers.name)}\n\nStart writing your document here.\n`;
+	const id = typstIdentifier(answers.name);
+	const title = titleCase(answers.name);
+	return [
+		`#import "../lib.typ": ${id}`,
+		``,
+		`#show: ${id}.with(`,
+		`  title: "${title}",`,
+		`  author: "Your Name",`,
+		`)`,
+		``,
+		`= Introduction`,
+		``,
+		`Start writing your document here.`,
+		``,
+	].join("\n");
 }
 
 function renderReadme(answers: InitAnswers): string {
