@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-05-10
+
+### Fixed
+- **Publishing same-version PR updates**: `tyler build -p` now clears the target package version directory before copying the rebuilt package, so files deleted upstream do not linger in an existing package PR.
+
 ## [0.10.1] - 2026-05-10
 
 ### Fixed
