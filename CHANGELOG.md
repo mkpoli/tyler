@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-05-10
+
+### Fixed
+- **PR body for libraries vs templates and new vs update submissions**: `tyler build -p`'s interactive PR body is now correctly differentiated. Library submissions no longer carry the orphan `<!-- The following box only needs to be checked for **template** submissions -->` HTML comment, and update PRs no longer ship a checked new-submission checklist (the upstream PR template instructs authors to delete that section for updates). The interactive checklist prompt is also skipped entirely for update PRs.
+
 ## [0.10.0] - 2026-05-10
 
 ### Added
