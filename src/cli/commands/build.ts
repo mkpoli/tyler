@@ -540,13 +540,14 @@ export default {
 			);
 			if (options.dryRun) {
 				console.info(
-					`[Tyler] ${chalk.gray("(dry-run)")} Would copy files from ${chalk.gray(outputDir)} to ${chalk.gray(packageDir)}`,
+					`[Tyler] ${chalk.gray("(dry-run)")} Would clean ${chalk.gray(packageDir)} and copy files from ${chalk.gray(outputDir)}`,
 				);
 			} else {
+				await fs.rm(packageDir, { recursive: true, force: true });
 				await fs.mkdir(packageDir, { recursive: true });
 				await fs.cp(outputDir, packageDir, { recursive: true });
 				console.info(
-					`[Tyler] Copied files from ${chalk.gray(outputDir)} to ${chalk.gray(packageDir)}`,
+					`[Tyler] Cleaned ${chalk.gray(packageDir)} and copied files from ${chalk.gray(outputDir)}`,
 				);
 			}
 
