@@ -29,6 +29,12 @@ import {
 	getWorkingDirectory,
 } from "@/utils/file";
 import {
+	excludeContributor,
+	formatCoAuthoredBy,
+	getGitAuthor,
+	getGitContributors,
+} from "@/utils/git";
+import {
 	combineIgnorePatterns,
 	computeDefaultIgnores,
 	shouldIgnore,
@@ -651,7 +657,21 @@ export default {
 
 			// - Stage, commit and push the built package to the cloned repository
 			const stageCommand = `git -C ${gitRepoDir} add packages/preview/${builtPackageName}/${builtPackageVersion}`;
-			const commitCommand = `git -C ${gitRepoDir} commit -m ${builtPackageName}@${builtPackageVersion}`;
+			const registryCommitAuthor = await getGitAuthor(gitRepoDir);
+			const coAuthors = excludeContributor(
+				await getGitContributors(workingDirectory),
+				registryCommitAuthor,
+			);
+			const commitMessage = `${builtPackageName}@${builtPackageVersion}${
+				coAuthors.length > 0
+					? `\n\n${coAuthors.map(formatCoAuthoredBy).join("\n")}`
+					: ""
+			}`;
+			const commitMessagePath = path.join(
+				tempDirPath,
+				"tyler-commit-message.txt",
+			);
+			const commitCommand = `git -C ${gitRepoDir} commit -F ${commitMessagePath}`;
 
 			if (options.dryRun) {
 				console.info(
@@ -666,7 +686,15 @@ export default {
 				console.info(
 					`[Tyler] ${chalk.gray("(dry-run)")} Would run ${chalk.gray(commitCommand)}`,
 				);
+				if (coAuthors.length > 0) {
+					console.info(
+						`[Tyler] ${chalk.gray("(dry-run)")} Would include co-authors:\n${chalk.gray(
+							coAuthors.map(formatCoAuthoredBy).join("\n"),
+						)}`,
+					);
+				}
 			} else {
+				await fs.writeFile(commitMessagePath, commitMessage);
 				await execAndRedirect(commitCommand);
 				console.info(`[Tyler] Ran ${chalk.gray(commitCommand)}`);
 			}
