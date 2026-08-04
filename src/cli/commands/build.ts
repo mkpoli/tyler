@@ -415,29 +415,43 @@ export default {
 			const templateFiles = await fs.readdir(templatePath, { recursive: true });
 
 			for (const templateFile of templateFiles) {
-				const libraryEntrypointRelativeToTemplateFile = path.relative(
-					templateFile,
-					entrypoint,
-				);
-				const content = await fs.readFile(
-					path.resolve(templatePath, templateFile),
-					"utf8",
-				);
+				const absoluteTemplateFile = path.resolve(templatePath, templateFile);
+				const stats = await fs.stat(absoluteTemplateFile).catch(() => null);
+				if (!stats?.isFile()) {
+					continue;
+				}
 
+				const content = await fs.readFile(absoluteTemplateFile, "utf8");
 				const relativeTemplateFilePath = path.relative(
 					sourceDir,
-					path.resolve(templatePath, templateFile),
+					absoluteTemplateFile,
 				);
 
-				if (
-					content.includes(
-						`import "${libraryEntrypointRelativeToTemplateFile}"`,
-					)
-				) {
-					modifiedFiles[relativeTemplateFilePath] = content.replace(
-						`import "${libraryEntrypointRelativeToTemplateFile}"`,
+				// The manifest declares the entrypoint relative to the working
+				// directory, but src-layout projects write it relative to the
+				// source directory (the built package's root), so the import in
+				// a template file may point at either anchor.
+				const libraryImportPaths = new Set(
+					[
+						path.resolve(workingDirectory, entrypoint),
+						path.resolve(sourceDir, entrypoint),
+					].map((absoluteEntrypoint) =>
+						path
+							.relative(path.dirname(absoluteTemplateFile), absoluteEntrypoint)
+							.split(path.sep)
+							.join("/"),
+					),
+				);
+
+				let updatedContent = content;
+				for (const importPath of libraryImportPaths) {
+					updatedContent = updatedContent.replaceAll(
+						`import "${importPath}"`,
 						`import "@preview/${typstToml.package.name}:${bumpedVersion}"`,
 					);
+				}
+				if (updatedContent !== content) {
+					modifiedFiles[relativeTemplateFilePath] = updatedContent;
 				}
 			}
 		}
@@ -452,28 +466,36 @@ export default {
 				continue;
 			}
 
+			const sourceFilePath = path.resolve(sourceDir, file);
+			const outputFilePath = path.resolve(outputDir, file);
+
+			if ((await fs.lstat(sourceFilePath)).isDirectory()) {
+				if (!options.dryRun) {
+					await fs.mkdir(outputFilePath, { recursive: true });
+				}
+				continue;
+			}
+
 			if (modifiedFiles[file]) {
 				if (options.dryRun) {
 					console.info(
-						`[Tyler] ${chalk.gray("(dry-run) ")} Would write ${chalk.green(path.relative(workingDirectory, file))} to ${chalk.yellow(path.relative(workingDirectory, outputDir))}`,
+						`[Tyler] ${chalk.gray("(dry-run) ")} Would write ${chalk.green(path.relative(workingDirectory, sourceFilePath))} to ${chalk.yellow(path.relative(workingDirectory, outputDir))}`,
 					);
 					continue;
 				}
-				const outputFilePath = path.resolve(outputDir, file);
+				await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
 				await fs.writeFile(outputFilePath, modifiedFiles[file]);
 				console.info(
 					`[Tyler] Copied modified version of ${chalk.green(file)} to ${chalk.yellow(path.relative(workingDirectory, outputFilePath))}`,
 				);
 			} else {
-				const sourceFilePath = path.resolve(sourceDir, file);
-				const outputFilePath = path.resolve(outputDir, file);
-
 				if (options.dryRun) {
 					console.info(
 						`[Tyler] ${chalk.gray("(dry-run)")} Would copy ${chalk.green(path.relative(workingDirectory, sourceFilePath))} to ${chalk.yellow(path.relative(workingDirectory, outputFilePath))}`,
 					);
 				} else {
-					await fs.cp(sourceFilePath, outputFilePath, { recursive: true });
+					await fs.mkdir(path.dirname(outputFilePath), { recursive: true });
+					await fs.cp(sourceFilePath, outputFilePath);
 					console.info(
 						`[Tyler] Copied ${chalk.green(path.relative(workingDirectory, sourceFilePath))} to ${chalk.yellow(path.relative(workingDirectory, outputFilePath))}`,
 					);

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-08-04
+
+### Fixed
+- **Nested folders inside the template directory**: `tyler build` crashed with `EISDIR: illegal operation on a directory` when the template directory contained subfolders, because every entry of the recursive listing was read as a file ([#3](https://github.com/mkpoli/tyler/issues/3)). Directory entries are now skipped during the entrypoint-import scan and recreated in the output directory, entrypoint imports are rewritten in template files at any depth, and the rewrite matches the entrypoint anchored at either the working directory or the source directory.
+
 ## [0.10.3] - 2026-05-10
 
 ### Added
