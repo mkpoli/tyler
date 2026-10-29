@@ -218,6 +218,12 @@ That's it — do **not** run `bun publish` / `npm publish` from a workstation. T
 
 Tyler is named after something like **Ty**pst + Compi**ler** or **Ty**pst + But**ler**.
 
+## Sponsor
+
+I make Tyler alone, out of love for Typst. I don't have a job, and my small TA pay doesn't cover rent and food. Even one dollar on [Ko-fi](https://ko-fi.com/mkpoli) helps me eat today. Companies interested in sponsoring can write to mkpoli@mkpo.li.
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/mkpoli)
+
 ## License
 
 [MIT License](./LICENSE) © 2024 [mkpoli](https://mkpo.li/)
